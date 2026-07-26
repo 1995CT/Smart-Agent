@@ -44,7 +44,7 @@
       font-family: var(--font-body);
       background-color: var(--bg-dark);
       background-image: 
-        radial-gradient(circle at 50% 40%, rgba(212, 175, 55, 0.05) 0%, transparent 60%);
+        radial-gradient(circle at 50% 40%, rgba(212, 175, 55, 0.04) 0%, transparent 60%);
       color: var(--text-main);
       overflow: hidden;
       -webkit-font-smoothing: antialiased;
@@ -222,7 +222,7 @@
       border-radius: 4px;
     }
 
-    /* ── CENTERED HERO GROUP (Logo + Title + Input Box in Page Center) ─ */
+    /* ── EXACT PAGE CENTER HERO BLOCK (Logo + Title + Input Box ALL IN CENTER) ─ */
     .hero-centered {
       display: flex;
       flex-direction: column;
@@ -242,17 +242,17 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 180px;
-      height: 180px;
+      width: 190px;
+      height: 190px;
     }
 
-    /* Subtle Dim Soft Golden Backlight Glow directly behind Golden T */
+    /* Subtle Soft Dim Golden Backlight Glow directly behind Golden T */
     .golden-dim-backlight {
       position: absolute;
-      width: 160px;
-      height: 160px;
+      width: 165px;
+      height: 165px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(212, 175, 55, 0.2) 0%, rgba(212, 175, 55, 0.06) 55%, transparent 70%);
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.22) 0%, rgba(212, 175, 55, 0.07) 55%, transparent 70%);
       filter: blur(28px);
       animation: dimGlowPulse 4s ease-in-out infinite alternate;
     }
@@ -262,19 +262,19 @@
       100% { transform: scale(1.15); opacity: 0.95; }
     }
 
-    /* Perfect Golden 3D 'T' Image (0 Black holes, 0 Box lines) */
-    .perfect-golden-t-img {
+    /* Perfect Golden 3D 'T' Image (Exact User Image, 0 Black holes, 0 Box lines) */
+    .golden-t-img {
       position: relative;
-      height: 155px;
+      height: 160px;
       width: auto;
       object-fit: contain;
-      filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.3)) drop-shadow(0 12px 25px rgba(0,0,0,0.85));
+      filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.35)) drop-shadow(0 12px 25px rgba(0,0,0,0.85));
       z-index: 2;
       display: block;
       transition: transform 0.3s ease;
     }
 
-    .perfect-golden-t-img:hover {
+    .golden-t-img:hover {
       transform: scale(1.03);
     }
 
@@ -502,7 +502,7 @@
     <!-- Header Bar (Appears when chat starts) -->
     <header class="header-bar" id="header-bar">
       <div class="header-brand">
-        <img src="/static/perfect_golden_t.png" class="header-logo-mini-img" alt="Logo">
+        <img src="/static/golden_t_final.png" class="header-logo-mini-img" alt="Logo">
         <div class="header-title-text">Smart Agent</div>
       </div>
     </header>
@@ -517,7 +517,7 @@
           <div class="golden-dim-backlight"></div>
 
           <!-- Perfect Golden 3D 'T' Image (0 Black holes, 0 Box lines) -->
-          <img src="/static/perfect_golden_t.png" class="perfect-golden-t-img" alt="Golden T Logo">
+          <img src="/static/golden_t_final.png" class="golden-t-img" alt="Golden T Logo">
         </div>
 
         <div class="hero-headline">How can I help you today?</div>
@@ -730,7 +730,7 @@
     } else {
       row.innerHTML = `
         <div class="msg-avatar">
-          <img src="/static/perfect_golden_t.png" alt="Logo">
+          <img src="/static/golden_t_final.png" alt="Logo">
         </div>
         <div class="msg-bubble">${formatText(text)}</div>
       `;
@@ -746,7 +746,7 @@
     row.id = 'typing-indicator';
     row.innerHTML = `
       <div class="msg-avatar">
-        <img src="/static/perfect_golden_t.png" alt="Logo">
+        <img src="/static/golden_t_final.png" alt="Logo">
       </div>
       <div class="typing-flair">
         <div class="typing-dot"></div>
