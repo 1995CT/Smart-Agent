@@ -4,7 +4,16 @@ from flask import Flask, render_template, request, jsonify, session
 from dotenv import load_dotenv
 
 from langchain_openai import ChatOpenAI
-from langchain.agents import AgentExecutor, create_openai_tools_agent
+try:
+    from langchain.agents import AgentExecutor, create_openai_tools_agent
+except ImportError:
+    try:
+        from langchain.agents.agent import AgentExecutor
+        from langchain.agents.openai_tools.base import create_openai_tools_agent
+    except ImportError:
+        from langchain.agents import AgentExecutor
+        create_openai_tools_agent = None
+
 from langchain.memory import ConversationSummaryBufferMemory
 from langchain_community.tools import DuckDuckGoSearchRun
 from langchain.tools import tool
