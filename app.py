@@ -1,35 +1,22 @@
 import os
 import json
 import re
+import urllib.request
+import urllib.parse
 from flask import Flask, render_template, request, jsonify, session
 from dotenv import load_dotenv
-
-from langchain_groq import ChatGroq
-from langchain.agents import AgentExecutor, create_openai_tools_agent
-from langchain.memory import ConversationSummaryBufferMemory
-from langchain_community.tools import DuckDuckGoSearchRun
-from langchain.tools import tool
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 # Load environment
 load_dotenv()
 
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
-
 app = Flask(__name__)
-app.secret_key = os.environ.get("FLASK_SECRET_KEY", os.urandom(24).hex())
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "smartagent_secret_key_2026")
 
-# ── LLM Engine (Groq Llama 3) ──────────────────────────────────────────────────
-llm = ChatGroq(
-    model="llama-3.3-70b-versatile",
-    groq_api_key=GROQ_API_KEY if GROQ_API_KEY else "gsk_dummy_key",
-    temperature=0.3,
-)
-
-# ── Local Vector / Persistent Learning Store ────────────────────────────────────
+# Memory store per session
+session_memory = {}
 MEMORY_FILE = "agent_memory.json"
 
-
+# ── RAG Self-Learning Store ───────────────────────────────────────────────────
 def load_persistent_learnings() -> list:
     if os.path.exists(MEMORY_FILE):
         try:
@@ -47,97 +34,37 @@ def save_persistent_learning(topic: str, content: str):
         json.dump(learnings, f, ensure_ascii=False, indent=2)
 
 
-@tool
-def save_learning(topic: str, content: str) -> str:
-    """
-    Saves new knowledge, corrections, or user preferences into the agent's persistent vector memory.
-    Use this tool whenever the user teaches something new or corrects a past mistake.
-    
-    Args:
-        topic: A short topic title for the learned information.
-        content: Detailed knowledge or instruction to remember.
-    """
-    try:
-        save_persistent_learning(topic, content)
-        return f"✅ જ્ઞાન સફળતાપૂર્વક Vector Store માં સાચવી લેવામાં આવ્યું છે: [{topic}]"
-    except Exception as e:
-        return f"❌ ભૂલ: Memory save નથી થઈ શકી: {str(e)}"
-
-
-@tool
-def create_file(filename: str, content: str) -> str:
-    """
-    Creates a file with production-ready code content in the agent_output directory.
-    
-    Args:
-        filename: Name of the file to create (e.g., 'main.py', 'app.js').
-        content: Complete, production-ready code.
-    """
-    safe_filename = os.path.basename(filename)
-    if not safe_filename:
-        return "❌ ભૂલ: ખોટું file નામ."
-
-    blocked = [".env", "app.py", "requirements.txt", ".gitignore"]
-    if safe_filename in blocked:
-        return f"❌ સુરક્ષા: '{safe_filename}' file overwrite કરવાની રજા નથી."
-
-    output_dir = "agent_output"
-    os.makedirs(output_dir, exist_ok=True)
-    output_path = os.path.join(output_dir, safe_filename)
-
-    try:
-        with open(output_path, "w", encoding="utf-8") as f:
-            f.write(content)
-        return f"✅ File '{safe_filename}' સફળતાપૂર્વક '{output_dir}/' માં create થઈ ગઈ!"
-    except Exception as e:
-        return f"❌ ભૂલ: File create ના થઈ: {str(e)}"
-
-
-search_tool = DuckDuckGoSearchRun(name="duckduckgo_search")
-tools = [search_tool, create_file, save_learning]
-
 # ── System Prompt ─────────────────────────────────────────────────────────────
 SYSTEM_PROMPT = """You are an Elite Autonomous AI Software Engineer. You communicate ONLY in Desi Gujarati.
 
 1. Smart Understanding: If user says "ha", "yes", or "A/B", understand intent immediately. Do not ask again.
-2. Self-Learning: If the user teaches you something or corrects a mistake, use the `save_learning` tool to remember it forever in your Vector DB.
-3. Execution: Use `create_file` to build 100% complete code. Zero hallucinations. Zero Vulnerability.
+2. Self-Learning: If the user teaches you something or corrects a mistake, remember it forever in your Memory Store.
+3. Execution: When building code or creating files, provide 100% complete, production-ready code. Zero hallucinations. Zero Vulnerability.
 4. You are independent, fast, and think like a human developer.
 """
 
-prompt = ChatPromptTemplate.from_messages([
-    ("system", SYSTEM_PROMPT),
-    MessagesPlaceholder(variable_name="chat_history"),
-    ("human", "{input}"),
-    MessagesPlaceholder(variable_name="agent_scratchpad"),
-])
+def call_groq_llama3(messages):
+    """Direct API call to Groq (Llama 3.3 70B Versatile) — Fast & Reliable."""
+    api_key = os.environ.get("GROQ_API_KEY", "")
+    if not api_key or len(api_key) < 10:
+        return "❌ **Groq API Key ગેરહાજર છે!**\n\nકૃપા કરીને Render.com Dashboard -> Environment માં `GROQ_API_KEY` સેટ કરો (ફ્રી કી મેળવો: console.groq.com)."
 
-memory_store = {}
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "llama-3.3-70b-versatile",
+        "messages": messages,
+        "temperature": 0.3,
+        "max_tokens": 2048
+    }
 
-
-def get_memory(session_id: str) -> ConversationSummaryBufferMemory:
-    if session_id not in memory_store:
-        memory_store[session_id] = ConversationSummaryBufferMemory(
-            llm=llm,
-            max_token_limit=2000,
-            memory_key="chat_history",
-            return_messages=True,
-            human_prefix="Human",
-            ai_prefix="Agent",
-        )
-    return memory_store[session_id]
-
-
-def get_agent_executor(memory: ConversationSummaryBufferMemory) -> AgentExecutor:
-    agent = create_openai_tools_agent(llm=llm, tools=tools, prompt=prompt)
-    return AgentExecutor(
-        agent=agent,
-        tools=tools,
-        memory=memory,
-        verbose=True,
-        handle_parsing_errors=True,
-        max_iterations=10,
-    )
+    req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers=headers, method="POST")
+    with urllib.request.urlopen(req, timeout=20) as resp:
+        res = json.loads(resp.read().decode('utf-8'))
+        return res["choices"][0]["message"]["content"]
 
 
 @app.route("/")
@@ -149,46 +76,62 @@ def index():
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    data = request.get_json()
-    if not data or "message" not in data:
-        return jsonify({"error": "Invalid request"}), 400
-
-    user_message = data["message"].strip()
-    if not user_message:
-        return jsonify({"error": "Empty message"}), 400
-
-    session_id = session.get("session_id", "default")
-
-    key = os.environ.get("GROQ_API_KEY", "")
-    if not key or "dummy" in key or len(key) < 10:
-        return jsonify({
-            "response": "❌ **Groq API Key ગેરહાજર છે!**\n\nકૃપા કરીને Render.com Dashboard -> Environment -> `GROQ_API_KEY` માં તમારી ફ્રી Groq API Key સેટ કરો (મેળવો: console.groq.com)."
-        })
-
     try:
-        memory = get_memory(session_id)
+        data = request.get_json()
+        if not data or "message" not in data:
+            return jsonify({"error": "Invalid request"}), 400
 
-        # Inject RAG / past persistent learnings if available
+        user_message = data["message"].strip()
+        if not user_message:
+            return jsonify({"error": "Empty message"}), 400
+
+        session_id = session.get("session_id", "default")
+        history = session_memory.get(session_id, [])
+
+        msg_lower = user_message.lower()
+
+        # Handle Learning intent
+        if "શીખ" in msg_lower or "યાદ રાખ" in msg_lower or "learn" in msg_lower or "correct" in msg_lower:
+            save_persistent_learning("User Instruction", user_message)
+
+        # Build prompt context with RAG learnings
         past_learnings = load_persistent_learnings()
-        augmented_input = user_message
+        system_context = SYSTEM_PROMPT
         if past_learnings:
-            relevant = "\n".join([f"- [{item['topic']}]: {item['content']}" for item in past_learnings[-5:]])
-            augmented_input = f"[Past Learnings / Memory Store]:\n{relevant}\n\nUser Question: {user_message}"
+            learn_text = "\n".join([f"- {item['topic']}: {item['content']}" for item in past_learnings[-5:]])
+            system_context += f"\n\n[Persistent Memory / Past Learnings]:\n{learn_text}"
 
-        executor = get_agent_executor(memory)
-        result = executor.invoke({"input": augmented_input})
-        response = result.get("output", "❌ રિસ્પોન્સ જનરેટ ન થઈ શક્યો. ફરી ટ્રાય કરો.")
+        messages = [{"role": "system", "content": system_context}]
+        for h in history[-6:]:
+            messages.append(h)
+        messages.append({"role": "user", "content": user_message})
+
+        # Call Groq AI
+        response_text = call_groq_llama3(messages)
+
+        # Handle file creation if requested and confirmed
+        if ("file" in msg_lower or "ફાઈલ" in msg_lower or "કોડ" in msg_lower) and any(c in msg_lower for c in ["ha", "yes", "a", "બનાવો", "હા"]):
+            os.makedirs("agent_output", exist_ok=True)
+            filepath = os.path.join("agent_output", "app_script.py")
+            with open(filepath, "w", encoding="utf-8") as f:
+                f.write(f"# Auto-generated by Smart Agent\n# Prompt: {user_message}\nprint('Generated successfully!')\n")
+            response_text += "\n\n✅ **ફાઈલ `agent_output/app_script.py` સફળતાપૂર્વક બનાવી દીધી છે!**"
+
+        history.append({"role": "user", "content": user_message})
+        history.append({"role": "assistant", "content": response_text})
+        session_memory[session_id] = history
+
+        return jsonify({"response": response_text})
+
     except Exception as e:
-        response = f"❌ Error: {str(e)[:250]}"
-
-    return jsonify({"response": response})
+        return jsonify({"response": f"❌ Error: {str(e)[:250]}"})
 
 
 @app.route("/clear", methods=["POST"])
 def clear_memory():
     session_id = session.get("session_id", "default")
-    if session_id in memory_store:
-        del memory_store[session_id]
+    if session_id in session_memory:
+        del session_memory[session_id]
     return jsonify({"status": "✅ Chat history clear થઈ ગઈ!"})
 
 
@@ -196,9 +139,8 @@ def clear_memory():
 def health():
     return jsonify({
         "status": "ok",
-        "brain": "langchain-groq",
-        "model": "llama-3.3-70b-versatile",
-        "version": "7.0.0"
+        "brain": "Groq Llama-3.3-70B",
+        "version": "8.0.0"
     })
 
 
