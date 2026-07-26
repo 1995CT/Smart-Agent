@@ -11,15 +11,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   
   <style>
-    /* ── Minimalist Premium Dark Palette ───────────────────────── */
+    /* ── Minimalist Clean Warm Dark Palette ────────────────────── */
     :root {
-      --bg-dark:          #0a0b0e;
+      --bg-dark:          #08090c;
       --bg-sidebar:       #11131c;
       --bg-input:         #161924;
 
       --warm-gold:        #d4af37;
       --warm-gold-light:  #f3e5ab;
-      --warm-gold-glow:   rgba(212, 175, 55, 0.25);
+      --warm-gold-dim:    rgba(212, 175, 55, 0.15);
       --warm-amber:       #f59e0b;
 
       --text-main:        #f1f5f9;
@@ -44,7 +44,7 @@
       font-family: var(--font-body);
       background-color: var(--bg-dark);
       background-image: 
-        radial-gradient(circle at 50% 35%, rgba(212, 175, 55, 0.05) 0%, transparent 60%);
+        radial-gradient(circle at 50% 35%, rgba(212, 175, 55, 0.04) 0%, transparent 60%);
       color: var(--text-main);
       overflow: hidden;
       -webkit-font-smoothing: antialiased;
@@ -192,10 +192,10 @@
       gap: 12px;
     }
 
-    .header-logo-mini-svg {
-      height: 30px;
+    .header-logo-mini-img {
+      height: 28px;
       width: auto;
-      filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.5));
+      filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.4));
     }
 
     .header-title-text {
@@ -222,7 +222,7 @@
       border-radius: 4px;
     }
 
-    /* ── Prominent Golden 'T' Logo with Subtle Soft Backlight Glow ─ */
+    /* ── Exact User 'T' Logo with Dim Soft Backlight Glow ────────── */
     .hero-centered {
       display: flex;
       flex-direction: column;
@@ -240,39 +240,40 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 220px;
-      height: 220px;
+      width: 200px;
+      height: 200px;
     }
 
-    /* Subtle Soft Golden Light Glow behind 'T' */
-    .golden-subtle-backlight {
+    /* Dim Soft Golden Backlight Glow */
+    .golden-dim-backlight {
       position: absolute;
-      width: 190px;
-      height: 190px;
+      width: 170px;
+      height: 170px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(212, 175, 55, 0.35) 0%, rgba(212, 175, 55, 0.12) 45%, transparent 70%);
-      filter: blur(35px);
-      animation: subtleGlowPulse 4s ease-in-out infinite alternate;
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.22) 0%, rgba(212, 175, 55, 0.08) 50%, transparent 70%);
+      filter: blur(30px);
+      animation: dimGlowPulse 4s ease-in-out infinite alternate;
     }
 
-    @keyframes subtleGlowPulse {
-      0% { transform: scale(0.95); opacity: 0.7; }
-      100% { transform: scale(1.15); opacity: 1; }
+    @keyframes dimGlowPulse {
+      0% { transform: scale(0.95); opacity: 0.6; }
+      100% { transform: scale(1.15); opacity: 0.95; }
     }
 
-    /* Prominent Standalone Golden 3D 'T' SVG Emblem */
-    .golden-t-emblem-svg {
+    /* Exact User Golden 3D 'T' Image */
+    .exact-user-t-img {
       position: relative;
-      height: 175px;
+      height: 160px;
       width: auto;
-      filter: drop-shadow(0 0 16px rgba(212, 175, 55, 0.45)) drop-shadow(0 12px 25px rgba(0,0,0,0.85));
+      object-fit: contain;
+      filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.35)) drop-shadow(0 10px 20px rgba(0,0,0,0.8));
       z-index: 2;
       display: block;
       transition: transform 0.3s ease;
     }
 
-    .golden-t-emblem-svg:hover {
-      transform: scale(1.04);
+    .exact-user-t-img:hover {
+      transform: scale(1.03);
     }
 
     .hero-headline {
@@ -302,18 +303,18 @@
     .msg-row.user { justify-content: flex-end; }
 
     .msg-avatar {
-      width: 36px;
-      height: 36px;
+      width: 34px;
+      height: 34px;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
     }
 
-    .msg-avatar svg {
+    .msg-avatar img {
       height: 28px;
       width: auto;
-      filter: drop-shadow(0 0 6px var(--warm-gold-glow));
+      filter: drop-shadow(0 0 6px var(--warm-gold-dim));
     }
 
     .msg-bubble {
@@ -438,7 +439,7 @@
       justify-content: center;
       transition: all 0.2s ease;
       flex-shrink: 0;
-      box-shadow: 0 4px 14px var(--warm-gold-glow);
+      box-shadow: 0 4px 14px var(--warm-gold-dim);
     }
 
     .btn-send-gold svg {
@@ -487,17 +488,7 @@
     <!-- Header Bar (Appears when chat starts) -->
     <header class="header-bar" id="header-bar">
       <div class="header-brand">
-        <!-- Mini Golden T Logo -->
-        <svg class="header-logo-mini-svg" viewBox="0 0 100 100">
-          <defs>
-            <linearGradient id="miniGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#FFF6C8" />
-              <stop offset="50%" stop-color="#D4AF37" />
-              <stop offset="100%" stop-color="#997A15" />
-            </linearGradient>
-          </defs>
-          <path d="M 20 22 H 80 C 80 22, 76 24, 76 30 V 36 H 58 V 74 C 58 78, 62 78, 65 78 V 80 H 35 V 78 C 38 78, 42 78, 42 74 V 36 H 22 V 34 C 22 34, 24 33, 24 30 Z" fill="url(#miniGoldGrad)" />
-        </svg>
+        <img src="/static/exact_user_t.png" class="header-logo-mini-img" alt="Logo">
         <div class="header-title-text">Smart Agent</div>
       </div>
     </header>
@@ -505,44 +496,14 @@
     <!-- Chat Canvas -->
     <div class="chat-canvas" id="chat-canvas">
 
-      <!-- Prominent 3D Golden 'T' Logo with Soft Golden Backlight -->
+      <!-- Prominent Exact User 'T' Image with Dim Soft Backlight Glow -->
       <div class="hero-centered" id="hero-centered">
         <div class="logo-stage-wrapper">
-          <!-- Subtle Soft Warm Light Glow directly behind 'T' -->
-          <div class="golden-subtle-backlight"></div>
+          <!-- Soft Dim Golden Backlight Glow directly behind 'T' -->
+          <div class="golden-dim-backlight"></div>
 
-          <!-- Pure Vector 3D Golden Brushed 'T' Emblem (No rectangular box, no lines) -->
-          <svg class="golden-t-emblem-svg" viewBox="0 0 100 100">
-            <defs>
-              <linearGradient id="goldBrushed" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#FFF8DC" />
-                <stop offset="30%" stop-color="#F3E5AB" />
-                <stop offset="65%" stop-color="#D4AF37" />
-                <stop offset="100%" stop-color="#8F6E12" />
-              </linearGradient>
-              <filter id="softEmblemShadow" x="-30%" y="-30%" width="160%" height="160%">
-                <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#000000" flood-opacity="0.8"/>
-              </filter>
-            </defs>
-
-            <!-- Exact Classical 3D Serif 'T' Path -->
-            <path d="M 20 22 H 80 C 80 22, 76 24, 76 30 C 76 33, 78 34, 78 34 V 36 H 58 V 74 C 58 78, 62 78, 65 78 V 80 H 35 V 78 C 38 78, 42 78, 42 74 V 36 H 22 V 34 C 22 34, 24 33, 24 30 C 24 24, 20 22, 20 22 Z" 
-                  fill="url(#goldBrushed)" filter="url(#softEmblemShadow)" stroke="#B38F24" stroke-width="0.8" />
-
-            <!-- Circuit Tech Detailing Top Left -->
-            <path d="M 24 26 L 31 26 L 34 29" stroke="#7A5E0E" stroke-width="1.4" fill="none" />
-            <circle cx="34" cy="29" r="1.6" fill="#FFF8DC" />
-
-            <!-- Circuit Tech Detailing Top Right -->
-            <path d="M 76 26 L 69 26 L 66 29" stroke="#7A5E0E" stroke-width="1.4" fill="none" />
-            <circle cx="66" cy="29" r="1.6" fill="#FFF8DC" />
-
-            <!-- Circuit Tech Detailing Stem -->
-            <path d="M 50 63 L 54 67 L 54 74" stroke="#7A5E0E" stroke-width="1.4" fill="none" />
-            <circle cx="54" cy="74" r="1.6" fill="#FFF8DC" />
-            <path d="M 50 68 L 51.5 69.5" stroke="#7A5E0E" stroke-width="1.2" fill="none" />
-            <circle cx="51.5" cy="69.5" r="1.1" fill="#FFF8DC" />
-          </svg>
+          <!-- Exact Golden 3D 'T' Image provided by User -->
+          <img src="/static/exact_user_t.png" class="exact-user-t-img" alt="Golden T Logo">
         </div>
 
         <div class="hero-headline">How can I help you today?</div>
@@ -723,9 +684,7 @@
     } else {
       row.innerHTML = `
         <div class="msg-avatar">
-          <svg viewBox="0 0 100 100">
-            <path d="M 20 22 H 80 V 36 H 58 V 78 H 42 V 36 H 22 Z" fill="#F3E5AB" />
-          </svg>
+          <img src="/static/exact_user_t.png" alt="Logo">
         </div>
         <div class="msg-bubble">${formatText(text)}</div>
       `;
@@ -741,9 +700,7 @@
     row.id = 'typing-indicator';
     row.innerHTML = `
       <div class="msg-avatar">
-        <svg viewBox="0 0 100 100">
-          <path d="M 20 22 H 80 V 36 H 58 V 78 H 42 V 36 H 22 Z" fill="#F3E5AB" />
-        </svg>
+        <img src="/static/exact_user_t.png" alt="Logo">
       </div>
       <div class="typing-flair">
         <div class="typing-dot"></div>
