@@ -1,9 +1,10 @@
 import os
 import json
+import re
 from flask import Flask, render_template, request, jsonify, session
 from dotenv import load_dotenv
 
-from langchain_openai import ChatOpenAI
+from langchain_groq import ChatGroq
 from langchain.agents import AgentExecutor, create_openai_tools_agent
 from langchain.memory import ConversationSummaryBufferMemory
 from langchain_community.tools import DuckDuckGoSearchRun
@@ -13,41 +14,64 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 # Load environment
 load_dotenv()
 
-# Detect key from env (Support both OPENAI_API_KEY and XAI_API_KEY)
-API_KEY = os.environ.get("XAI_API_KEY", "") or os.environ.get("OPENAI_API_KEY", "")
-
-# Determine provider (xAI Grok vs OpenAI GPT-4o)
-if API_KEY.startswith("xai-"):
-    MODEL_NAME = "grok-2-latest"
-    API_BASE = "https://api.x.ai/v1"
-else:
-    MODEL_NAME = "gpt-4o"
-    API_BASE = "https://api.openai.com/v1"
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", os.urandom(24).hex())
 
-# ── LLM Engine (Smart Dual Support: xAI Grok / OpenAI GPT-4o) ─────────────────
-llm = ChatOpenAI(
-    model=MODEL_NAME,
-    openai_api_key=API_KEY if API_KEY else "dummy_key_for_init",
-    openai_api_base=API_BASE,
-    temperature=0.4,
-    streaming=False,
+# ── LLM Engine (Groq Llama 3) ──────────────────────────────────────────────────
+llm = ChatGroq(
+    model="llama-3.3-70b-versatile",
+    groq_api_key=GROQ_API_KEY if GROQ_API_KEY else "gsk_dummy_key",
+    temperature=0.3,
 )
 
-# ── Tools ─────────────────────────────────────────────────────────────────────
-search_tool = DuckDuckGoSearchRun(name="duckduckgo_search")
+# ── Local Vector / Persistent Learning Store ────────────────────────────────────
+MEMORY_FILE = "agent_memory.json"
+
+
+def load_persistent_learnings() -> list:
+    if os.path.exists(MEMORY_FILE):
+        try:
+            with open(MEMORY_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return []
+    return []
+
+
+def save_persistent_learning(topic: str, content: str):
+    learnings = load_persistent_learnings()
+    learnings.append({"topic": topic, "content": content})
+    with open(MEMORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(learnings, f, ensure_ascii=False, indent=2)
+
+
+@tool
+def save_learning(topic: str, content: str) -> str:
+    """
+    Saves new knowledge, corrections, or user preferences into the agent's persistent vector memory.
+    Use this tool whenever the user teaches something new or corrects a past mistake.
+    
+    Args:
+        topic: A short topic title for the learned information.
+        content: Detailed knowledge or instruction to remember.
+    """
+    try:
+        save_persistent_learning(topic, content)
+        return f"✅ જ્ઞાન સફળતાપૂર્વક Vector Store માં સાચવી લેવામાં આવ્યું છે: [{topic}]"
+    except Exception as e:
+        return f"❌ ભૂલ: Memory save નથી થઈ શકી: {str(e)}"
 
 
 @tool
 def create_file(filename: str, content: str) -> str:
     """
-    Creates a file with the specified filename and production-ready code content in the agent_output directory.
+    Creates a file with production-ready code content in the agent_output directory.
     
     Args:
         filename: Name of the file to create (e.g., 'main.py', 'app.js').
-        content: Complete, production-ready code to write into the file.
+        content: Complete, production-ready code.
     """
     safe_filename = os.path.basename(filename)
     if not safe_filename:
@@ -69,21 +93,16 @@ def create_file(filename: str, content: str) -> str:
         return f"❌ ભૂલ: File create ના થઈ: {str(e)}"
 
 
-tools = [search_tool, create_file]
+search_tool = DuckDuckGoSearchRun(name="duckduckgo_search")
+tools = [search_tool, create_file, save_learning]
 
 # ── System Prompt ─────────────────────────────────────────────────────────────
-SYSTEM_PROMPT = """You are an Elite Autonomous AI Software Engineer, exactly like ChatGPT. 
-Your Goal: Take a simple idea, understand deep requirements, learn from the internet, and BUILD actual files autonomously.
+SYSTEM_PROMPT = """You are an Elite Autonomous AI Software Engineer. You communicate ONLY in Desi Gujarati.
 
-Behavior Protocol (STRICTLY FOLLOW THIS):
-1. Context Understanding: If the user replies with "ha", "yes", "okay", "A", or "B", understand their intent immediately. DO NOT ask them again. Proceed with the chosen option.
-2. Smart Execution: Once the choice is confirmed, use the 'create_file' tool to build the files. Write 100% complete, production-ready code (No hallucinations, No placeholders).
-3. Proactive Learning: Use the search tool if needed, learn from context, and remember user preferences.
-4. Zero Vulnerability: Always write highly secure code.
-
-Communication Tone:
-- Communicate ONLY in Desi Gujarati. Speak like a human senior developer.
-- Be highly responsive, smart, and confident. Do exactly what is asked without unnecessary questions.
+1. Smart Understanding: If user says "ha", "yes", or "A/B", understand intent immediately. Do not ask again.
+2. Self-Learning: If the user teaches you something or corrects a mistake, use the `save_learning` tool to remember it forever in your Vector DB.
+3. Execution: Use `create_file` to build 100% complete code. Zero hallucinations. Zero Vulnerability.
+4. You are independent, fast, and think like a human developer.
 """
 
 prompt = ChatPromptTemplate.from_messages([
@@ -140,16 +159,24 @@ def chat():
 
     session_id = session.get("session_id", "default")
 
-    env_key = os.environ.get("XAI_API_KEY", "") or os.environ.get("OPENAI_API_KEY", "")
-    if not env_key or "your_openai_key" in env_key or env_key == "dummy_key_for_init":
+    key = os.environ.get("GROQ_API_KEY", "")
+    if not key or "dummy" in key or len(key) < 10:
         return jsonify({
-            "response": "❌ **API Key ગેરહાજર છે!**\n\nકૃપા કરીને Render.com Dashboard -> Environment માં `OPENAI_API_KEY` અથવા `XAI_API_KEY` સેટ કરો."
+            "response": "❌ **Groq API Key ગેરહાજર છે!**\n\nકૃપા કરીને Render.com Dashboard -> Environment -> `GROQ_API_KEY` માં તમારી ફ્રી Groq API Key સેટ કરો (મેળવો: console.groq.com)."
         })
 
     try:
         memory = get_memory(session_id)
+
+        # Inject RAG / past persistent learnings if available
+        past_learnings = load_persistent_learnings()
+        augmented_input = user_message
+        if past_learnings:
+            relevant = "\n".join([f"- [{item['topic']}]: {item['content']}" for item in past_learnings[-5:]])
+            augmented_input = f"[Past Learnings / Memory Store]:\n{relevant}\n\nUser Question: {user_message}"
+
         executor = get_agent_executor(memory)
-        result = executor.invoke({"input": user_message})
+        result = executor.invoke({"input": augmented_input})
         response = result.get("output", "❌ રિસ્પોન્સ જનરેટ ન થઈ શક્યો. ફરી ટ્રાય કરો.")
     except Exception as e:
         response = f"❌ Error: {str(e)[:250]}"
@@ -169,9 +196,9 @@ def clear_memory():
 def health():
     return jsonify({
         "status": "ok",
-        "model": MODEL_NAME,
-        "api_base": API_BASE,
-        "version": "6.0.0"
+        "brain": "langchain-groq",
+        "model": "llama-3.3-70b-versatile",
+        "version": "7.0.0"
     })
 
 
