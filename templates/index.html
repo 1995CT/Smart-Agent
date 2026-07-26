@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Smart Agent</title>
+  <title>Smart Agent — Golden T Edition</title>
   
   <!-- Premium Fonts: Outfit (Display) + Plus Jakarta Sans + Noto Sans Gujarati -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -28,7 +28,7 @@
       --text-muted:       #475569;
 
       --border-subtle:    rgba(255, 255, 255, 0.08);
-      --border-gold:      rgba(212, 175, 55, 0.3);
+      --border-gold:      rgba(212, 175, 55, 0.35);
 
       --font-display:     'Outfit', 'Noto Sans Gujarati', sans-serif;
       --font-body:        'Plus Jakarta Sans', 'Noto Sans Gujarati', sans-serif;
@@ -45,7 +45,7 @@
       font-family: var(--font-body);
       background-color: var(--bg-dark);
       background-image: 
-        radial-gradient(circle at 50% 30%, rgba(212, 175, 55, 0.04) 0%, transparent 60%),
+        radial-gradient(circle at 50% 30%, rgba(212, 175, 55, 0.05) 0%, transparent 60%),
         radial-gradient(circle at 80% 80%, rgba(245, 158, 11, 0.03) 0%, transparent 50%);
       color: var(--text-main);
       overflow: hidden;
@@ -195,10 +195,10 @@
     }
 
     .header-logo-mini {
-      width: 28px;
-      height: 28px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #1e293b, #0f172a);
+      background: linear-gradient(135deg, #1e2638, #0c1019);
       border: 1px solid var(--border-gold);
       display: flex;
       align-items: center;
@@ -206,9 +206,8 @@
     }
 
     .header-logo-mini svg {
-      width: 14px;
-      height: 14px;
-      fill: var(--warm-gold-light);
+      width: 18px;
+      height: 18px;
     }
 
     .header-title-text {
@@ -235,7 +234,7 @@
       border-radius: 4px;
     }
 
-    /* ── Centered Hero & Electron Track Animation ────────────────── */
+    /* ── Golden 'T' 3D Logo & Electron Track Animation ───────────── */
     .hero-centered {
       display: flex;
       flex-direction: column;
@@ -248,59 +247,52 @@
       transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    /* Soft Glow Container */
     .logo-orbit-container {
       position: relative;
-      width: 140px;
-      height: 140px;
+      width: 160px;
+      height: 160px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    /* Soft Warm Light Ambient Glow */
+    /* Soft Warm Light Ambient Radial Glow */
     .logo-soft-glow {
       position: absolute;
-      width: 130px;
-      height: 130px;
+      width: 150px;
+      height: 150px;
       border-radius: 50%;
       background: radial-gradient(circle, var(--warm-gold-glow) 0%, transparent 70%);
-      filter: blur(16px);
+      filter: blur(18px);
       animation: ambientGlow 4s ease-in-out infinite alternate;
     }
 
     @keyframes ambientGlow {
       0% { transform: scale(0.9); opacity: 0.7; }
-      100% { transform: scale(1.15); opacity: 1; }
+      100% { transform: scale(1.18); opacity: 1; }
     }
 
-    /* 3D Classic Logo Emblem */
+    /* 3D Golden Brushed 'T' Emblem */
     .logo-3d-emblem {
       position: relative;
-      width: 76px;
-      height: 76px;
+      width: 90px;
+      height: 90px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #1e2638 0%, #0c1019 100%);
+      background: linear-gradient(135deg, #1c2333 0%, #090c14 100%);
       border: 2px solid var(--warm-gold);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 25px var(--warm-gold-glow);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.85), 0 0 30px var(--warm-gold-glow);
       z-index: 2;
     }
 
-    .logo-3d-emblem svg {
-      width: 38px;
-      height: 38px;
-      fill: var(--warm-gold-light);
-    }
-
-    /* Orbital Track Ring */
+    /* Orbital Electron Track Ring */
     .electron-track {
       position: absolute;
-      inset: 6px;
+      inset: 2px;
       border-radius: 50%;
-      border: 1px dashed rgba(212, 175, 55, 0.35);
+      border: 1px dashed rgba(212, 175, 55, 0.4);
       animation: rotateTrack 10s linear infinite;
     }
 
@@ -310,11 +302,11 @@
       top: -4px;
       left: 50%;
       transform: translateX(-50%);
-      width: 9px;
-      height: 9px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
       background-color: var(--warm-gold-light);
-      box-shadow: 0 0 12px var(--warm-gold-light), 0 0 20px var(--warm-gold);
+      box-shadow: 0 0 12px var(--warm-gold-light), 0 0 24px var(--warm-gold);
     }
 
     @keyframes rotateTrack {
@@ -349,10 +341,10 @@
     .msg-row.user { justify-content: flex-end; }
 
     .msg-avatar {
-      width: 34px;
-      height: 34px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #1e293b, #0f172a);
+      background: linear-gradient(135deg, #1e2638, #0c1019);
       border: 1px solid var(--border-gold);
       display: flex;
       align-items: center;
@@ -361,9 +353,8 @@
     }
 
     .msg-avatar svg {
-      width: 18px;
-      height: 18px;
-      fill: var(--warm-gold-light);
+      width: 20px;
+      height: 20px;
     }
 
     .msg-bubble {
@@ -538,7 +529,20 @@
     <header class="header-bar" id="header-bar">
       <div class="header-brand">
         <div class="header-logo-mini">
-          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          <!-- Mini Golden T Logo -->
+          <svg viewBox="0 0 100 100">
+            <defs>
+              <linearGradient id="miniGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#F3E5AB" />
+                <stop offset="50%" stop-color="#D4AF37" />
+                <stop offset="100%" stop-color="#AA7C11" />
+              </linearGradient>
+            </defs>
+            <path d="M 22 25 L 78 25 L 78 35 L 57 35 L 57 80 L 43 80 L 43 35 L 22 35 Z" fill="url(#miniGold)" />
+            <circle cx="28" cy="28" r="2.5" fill="#F3E5AB" />
+            <circle cx="72" cy="28" r="2.5" fill="#F3E5AB" />
+            <circle cx="53" cy="74" r="2.5" fill="#F3E5AB" />
+          </svg>
         </div>
         <div class="header-title-text">Smart Agent</div>
       </div>
@@ -547,7 +551,7 @@
     <!-- Chat Canvas -->
     <div class="chat-canvas" id="chat-canvas">
 
-      <!-- Centered Hero Emblem with Soft Glow & Revolving Electron Track -->
+      <!-- Centered Golden 'T' 3D Logo with Ambient Glow & Electron Track -->
       <div class="hero-centered" id="hero-centered">
         <div class="logo-orbit-container">
           <!-- Soft Warm Glow -->
@@ -558,9 +562,39 @@
             <div class="electron-dot"></div>
           </div>
 
-          <!-- 3D Classic Logo Emblem -->
+          <!-- 3D Golden Brushed 'T' Emblem -->
           <div class="logo-3d-emblem">
-            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            <svg viewBox="0 0 100 100">
+              <defs>
+                <linearGradient id="goldMetallic" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#FFF6C8" />
+                  <stop offset="35%" stop-color="#F3E5AB" />
+                  <stop offset="70%" stop-color="#D4AF37" />
+                  <stop offset="100%" stop-color="#997A15" />
+                </linearGradient>
+                <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.6"/>
+                </filter>
+              </defs>
+
+              <!-- Classical 'T' Path with Tech Circuit Detailing -->
+              <path d="M 20 22 H 80 C 80 22, 76 24, 76 30 C 76 33, 78 34, 78 34 V 36 H 58 V 74 C 58 78, 62 78, 65 78 V 80 H 35 V 78 C 38 78, 42 78, 42 74 V 36 H 22 V 34 C 22 34, 24 33, 24 30 C 24 24, 20 22, 20 22 Z" 
+                    fill="url(#goldMetallic)" filter="url(#dropShadow)" />
+
+              <!-- Circuit Lines Top-Left -->
+              <path d="M 24 26 L 32 26 L 35 29" stroke="#997A15" stroke-width="1.5" fill="none" />
+              <circle cx="35" cy="29" r="1.8" fill="#FFF6C8" />
+
+              <!-- Circuit Lines Top-Right -->
+              <path d="M 76 26 L 68 26 L 65 29" stroke="#997A15" stroke-width="1.5" fill="none" />
+              <circle cx="65" cy="29" r="1.8" fill="#FFF6C8" />
+
+              <!-- Circuit Lines Bottom-Right Stem -->
+              <path d="M 50 64 L 54 68 L 54 74" stroke="#997A15" stroke-width="1.5" fill="none" />
+              <circle cx="54" cy="74" r="1.8" fill="#FFF6C8" />
+              <path d="M 50 68 L 51.5 69.5" stroke="#997A15" stroke-width="1.5" fill="none" />
+              <circle cx="51.5" cy="69.5" r="1.2" fill="#FFF6C8" />
+            </svg>
           </div>
         </div>
 
@@ -742,7 +776,9 @@
     } else {
       row.innerHTML = `
         <div class="msg-avatar">
-          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          <svg viewBox="0 0 100 100">
+            <path d="M 22 25 L 78 25 L 78 35 L 57 35 L 57 80 L 43 80 L 43 35 L 22 35 Z" fill="#F3E5AB" />
+          </svg>
         </div>
         <div class="msg-bubble">${formatText(text)}</div>
       `;
@@ -758,7 +794,9 @@
     row.id = 'typing-indicator';
     row.innerHTML = `
       <div class="msg-avatar">
-        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        <svg viewBox="0 0 100 100">
+          <path d="M 22 25 L 78 25 L 78 35 L 57 35 L 57 80 L 43 80 L 43 35 L 22 35 Z" fill="#F3E5AB" />
+        </svg>
       </div>
       <div class="typing-flair">
         <div class="typing-dot"></div>
