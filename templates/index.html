@@ -24,10 +24,10 @@
 
       --text-main:        #f1f5f9;
       --text-secondary:   #94a3b8;
-      --text-muted:       #475569;
+      --text-muted:       #676767;
 
       --border-subtle:    rgba(255, 255, 255, 0.08);
-      --border-gold:      rgba(212, 175, 55, 0.3);
+      --border-gold:      rgba(212, 175, 55, 0.35);
 
       --font-display:     'Outfit', 'Noto Sans Gujarati', sans-serif;
       --font-body:        'Plus Jakarta Sans', 'Noto Sans Gujarati', sans-serif;
@@ -44,7 +44,7 @@
       font-family: var(--font-body);
       background-color: var(--bg-dark);
       background-image: 
-        radial-gradient(circle at 50% 35%, rgba(212, 175, 55, 0.04) 0%, transparent 60%);
+        radial-gradient(circle at 50% 40%, rgba(212, 175, 55, 0.05) 0%, transparent 60%);
       color: var(--text-main);
       overflow: hidden;
       -webkit-font-smoothing: antialiased;
@@ -222,7 +222,7 @@
       border-radius: 4px;
     }
 
-    /* ── Exact User 'T' Logo with Dim Soft Backlight Glow ────────── */
+    /* ── CENTERED HERO GROUP (Logo + Title + Input Box in Page Center) ─ */
     .hero-centered {
       display: flex;
       flex-direction: column;
@@ -230,8 +230,10 @@
       justify-content: center;
       margin: auto;
       text-align: center;
-      gap: 28px;
+      gap: 20px;
       padding: 0 20px;
+      width: 100%;
+      max-width: 680px;
       transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
@@ -240,48 +242,135 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 200px;
-      height: 200px;
+      width: 180px;
+      height: 180px;
     }
 
-    /* Dim Soft Golden Backlight Glow */
+    /* Subtle Dim Soft Golden Backlight Glow directly behind Golden T */
     .golden-dim-backlight {
       position: absolute;
-      width: 170px;
-      height: 170px;
+      width: 160px;
+      height: 160px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(212, 175, 55, 0.22) 0%, rgba(212, 175, 55, 0.08) 50%, transparent 70%);
-      filter: blur(30px);
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.2) 0%, rgba(212, 175, 55, 0.06) 55%, transparent 70%);
+      filter: blur(28px);
       animation: dimGlowPulse 4s ease-in-out infinite alternate;
     }
 
     @keyframes dimGlowPulse {
-      0% { transform: scale(0.95); opacity: 0.6; }
+      0% { transform: scale(0.92); opacity: 0.6; }
       100% { transform: scale(1.15); opacity: 0.95; }
     }
 
-    /* Exact User Golden 3D 'T' Image */
-    .exact-user-t-img {
+    /* Perfect Golden 3D 'T' Image (0 Black holes, 0 Box lines) */
+    .perfect-golden-t-img {
       position: relative;
-      height: 160px;
+      height: 155px;
       width: auto;
       object-fit: contain;
-      filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.35)) drop-shadow(0 10px 20px rgba(0,0,0,0.8));
+      filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.3)) drop-shadow(0 12px 25px rgba(0,0,0,0.85));
       z-index: 2;
       display: block;
       transition: transform 0.3s ease;
     }
 
-    .exact-user-t-img:hover {
+    .perfect-golden-t-img:hover {
       transform: scale(1.03);
     }
 
     .hero-headline {
       font-family: var(--font-display);
-      font-size: 26px;
+      font-size: 24px;
       font-weight: 700;
       color: var(--text-main);
       letter-spacing: -0.3px;
+      margin-bottom: 6px;
+    }
+
+    /* ── CENTERED INPUT BOX (Positioned Right Below Logo/Title) ──── */
+    .hero-input-box-wrapper {
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .input-pill-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: 10px 18px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+      transition: all 0.3s ease;
+    }
+
+    .input-pill-bar:focus-within {
+      border-color: var(--warm-gold);
+      box-shadow: 0 10px 40px rgba(212, 175, 55, 0.15);
+    }
+
+    #user-input {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text-main);
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.5;
+      resize: none;
+      max-height: 180px;
+      min-height: 26px;
+      padding: 4px 0;
+      text-align: center; /* Centered Placeholder & Text */
+    }
+
+    #user-input::placeholder {
+      color: var(--text-muted);
+      text-align: center; /* Centered Placeholder */
+    }
+
+    .btn-send-gold {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, var(--warm-gold), var(--warm-amber));
+      color: #0c0d12;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+      box-shadow: 0 4px 14px var(--warm-gold-dim);
+    }
+
+    .btn-send-gold svg {
+      width: 16px;
+      height: 16px;
+      fill: #0c0d12;
+    }
+
+    .btn-send-gold:hover:not(:disabled) {
+      transform: scale(1.06);
+    }
+
+    .btn-send-gold:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Dock Container (Active when conversation starts) */
+    .dock-container {
+      padding: 16px 20px 24px;
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      z-index: 10;
+      display: none; /* Shown when chat active */
     }
 
     /* ── Messages ────────────────────────────────────────────────── */
@@ -383,84 +472,9 @@
       40% { opacity: 1; transform: scale(1.1); background: var(--warm-gold-light); }
     }
 
-    /* ── Floating Centered Input Box ─────────────────────────────── */
-    .dock-container {
-      padding: 16px 20px 28px;
-      width: 100%;
-      max-width: 800px;
-      margin: 0 auto;
-      z-index: 10;
-    }
-
-    .input-pill-bar {
-      display: flex;
-      align-items: flex-end;
-      gap: 12px;
-      background-color: var(--bg-input);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-xl);
-      padding: 12px 20px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-      transition: all 0.3s ease;
-    }
-
-    .input-pill-bar:focus-within {
-      border-color: var(--warm-gold);
-      box-shadow: 0 10px 40px rgba(212, 175, 55, 0.15);
-    }
-
-    #user-input {
-      flex: 1;
-      background: none;
-      border: none;
-      outline: none;
-      color: var(--text-main);
-      font-family: var(--font-body);
-      font-size: 15px;
-      line-height: 1.5;
-      resize: none;
-      max-height: 200px;
-      min-height: 26px;
-      padding: 2px 0;
-    }
-
-    #user-input::placeholder { color: var(--text-muted); }
-
-    .btn-send-gold {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      border: none;
-      background: linear-gradient(135deg, var(--warm-gold), var(--warm-amber));
-      color: #0c0d12;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-      flex-shrink: 0;
-      box-shadow: 0 4px 14px var(--warm-gold-dim);
-    }
-
-    .btn-send-gold svg {
-      width: 16px;
-      height: 16px;
-      fill: #0c0d12;
-    }
-
-    .btn-send-gold:hover:not(:disabled) {
-      transform: scale(1.06);
-    }
-
-    .btn-send-gold:disabled {
-      opacity: 0.3;
-      cursor: not-allowed;
-      transform: none;
-    }
-
     @media (max-width: 768px) {
       .sidebar { display: none; }
-      .dock-container { padding: 12px 16px 16px; }
+      .dock-container, .hero-input-box-wrapper { padding: 0 16px; }
     }
   </style>
 </head>
@@ -488,7 +502,7 @@
     <!-- Header Bar (Appears when chat starts) -->
     <header class="header-bar" id="header-bar">
       <div class="header-brand">
-        <img src="/static/exact_user_t.png" class="header-logo-mini-img" alt="Logo">
+        <img src="/static/perfect_golden_t.png" class="header-logo-mini-img" alt="Logo">
         <div class="header-title-text">Smart Agent</div>
       </div>
     </header>
@@ -496,33 +510,38 @@
     <!-- Chat Canvas -->
     <div class="chat-canvas" id="chat-canvas">
 
-      <!-- Prominent Exact User 'T' Image with Dim Soft Backlight Glow -->
+      <!-- EXACT PAGE CENTER HERO BLOCK (Logo + Title + Input Box ALL IN CENTER) -->
       <div class="hero-centered" id="hero-centered">
         <div class="logo-stage-wrapper">
-          <!-- Soft Dim Golden Backlight Glow directly behind 'T' -->
+          <!-- Soft Dim Golden Backlight Glow directly behind Golden T -->
           <div class="golden-dim-backlight"></div>
 
-          <!-- Exact Golden 3D 'T' Image provided by User -->
-          <img src="/static/exact_user_t.png" class="exact-user-t-img" alt="Golden T Logo">
+          <!-- Perfect Golden 3D 'T' Image (0 Black holes, 0 Box lines) -->
+          <img src="/static/perfect_golden_t.png" class="perfect-golden-t-img" alt="Golden T Logo">
         </div>
 
         <div class="hero-headline">How can I help you today?</div>
+
+        <!-- Input Box Centered Directly Below Logo & Headline -->
+        <div class="hero-input-box-wrapper" id="hero-input-wrapper">
+          <div class="input-pill-bar">
+            <textarea
+              id="user-input"
+              placeholder="How can I help you today?"
+              rows="1"
+            ></textarea>
+            <button class="btn-send-gold" id="send-btn" onclick="sendMessage()" title="Send">
+              <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+          </div>
+        </div>
       </div>
 
     </div>
 
-    <!-- Centered Auto-Resizing Input Dock -->
-    <div class="dock-container">
-      <div class="input-pill-bar">
-        <textarea
-          id="user-input"
-          placeholder="How can I help you today?"
-          rows="1"
-        ></textarea>
-        <button class="btn-send-gold" id="send-btn" onclick="sendMessage()" title="Send">
-          <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-        </button>
-      </div>
+    <!-- Bottom Dock Container (Only for ongoing active conversation stream) -->
+    <div class="dock-container" id="bottom-dock">
+      <!-- Moved here dynamically when chat starts -->
     </div>
 
   </main>
@@ -532,12 +551,14 @@
   let currentSessionId = '';
   let isLoading = false;
 
-  const chatCanvas   = document.getElementById('chat-canvas');
-  const userInput    = document.getElementById('user-input');
-  const sendBtn      = document.getElementById('send-btn');
-  const heroCentered = document.getElementById('hero-centered');
-  const headerBar    = document.getElementById('header-bar');
-  const historyList  = document.getElementById('history-list');
+  const chatCanvas       = document.getElementById('chat-canvas');
+  const userInput        = document.getElementById('user-input');
+  const sendBtn          = document.getElementById('send-btn');
+  const heroCentered     = document.getElementById('hero-centered');
+  const headerBar        = document.getElementById('header-bar');
+  const historyList      = document.getElementById('history-list');
+  const heroInputWrapper = document.getElementById('hero-input-wrapper');
+  const bottomDock       = document.getElementById('bottom-dock');
 
   /* ── Multi-Chat Storage (localStorage) ──────────────────── */
   function getStoredChats() {
@@ -591,10 +612,27 @@
     if (chat && chat.messages && chat.messages.length > 0) {
       if (heroCentered) heroCentered.style.display = 'none';
       if (headerBar) headerBar.classList.add('visible');
+      
+      // Move input box to bottom dock when active chat
+      const pillBar = document.querySelector('.input-pill-bar');
+      if (pillBar && bottomDock) {
+        bottomDock.appendChild(pillBar);
+        bottomDock.style.display = 'block';
+        userInput.style.textAlign = 'left';
+      }
+
       chat.messages.forEach(m => renderMessageBubble(m.role, m.text));
     } else {
       if (heroCentered) heroCentered.style.display = 'flex';
       if (headerBar) headerBar.classList.remove('visible');
+
+      // Move input box back to page center
+      const pillBar = document.querySelector('.input-pill-bar');
+      if (pillBar && heroInputWrapper) {
+        heroInputWrapper.appendChild(pillBar);
+        bottomDock.style.display = 'none';
+        userInput.style.textAlign = 'center';
+      }
     }
   }
 
@@ -644,7 +682,7 @@
   /* ── Auto-resize Textarea ───────────────────────────────── */
   userInput.addEventListener('input', () => {
     userInput.style.height = 'auto';
-    userInput.style.height = Math.min(userInput.scrollHeight, 200) + 'px';
+    userInput.style.height = Math.min(userInput.scrollHeight, 180) + 'px';
   });
 
   userInput.addEventListener('keydown', (e) => {
@@ -673,6 +711,14 @@
     if (heroCentered && heroCentered.style.display !== 'none') {
       heroCentered.style.display = 'none';
       if (headerBar) headerBar.classList.add('visible');
+
+      // Move input box to bottom dock
+      const pillBar = document.querySelector('.input-pill-bar');
+      if (pillBar && bottomDock) {
+        bottomDock.appendChild(pillBar);
+        bottomDock.style.display = 'block';
+        userInput.style.textAlign = 'left';
+      }
     }
 
     const isUser = role === 'user';
@@ -684,7 +730,7 @@
     } else {
       row.innerHTML = `
         <div class="msg-avatar">
-          <img src="/static/exact_user_t.png" alt="Logo">
+          <img src="/static/perfect_golden_t.png" alt="Logo">
         </div>
         <div class="msg-bubble">${formatText(text)}</div>
       `;
@@ -700,7 +746,7 @@
     row.id = 'typing-indicator';
     row.innerHTML = `
       <div class="msg-avatar">
-        <img src="/static/exact_user_t.png" alt="Logo">
+        <img src="/static/perfect_golden_t.png" alt="Logo">
       </div>
       <div class="typing-flair">
         <div class="typing-dot"></div>
