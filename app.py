@@ -2,20 +2,31 @@ import os
 import json
 from flask import Flask, render_template, request, jsonify
 from langchain_groq import ChatGroq
-from langchain.agents import AgentExecutor, create_tool_calling_agent
+try:
+    from langchain.agents import AgentExecutor, create_tool_calling_agent
+except ImportError:
+    from langchain_classic.agents import AgentExecutor, create_tool_calling_agent
 from langchain.tools import tool
-from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain.memory import ConversationBufferMemory
+try:
+    from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+except ImportError:
+    from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+try:
+    from langchain.memory import ConversationBufferMemory
+except ImportError:
+    from langchain_classic.memory import ConversationBufferMemory
 from dotenv import load_dotenv
 
 load_dotenv()
 app = Flask(__name__)
 
+api_key = os.getenv("GROQ_API_KEY") or os.getenv("OPENAI_API_KEY") or os.getenv("XAI_API_KEY") or "gsk_dummy_key"
+
 # === GROQ SETUP ===
 llm = ChatGroq(
     model="llama-3.3-70b-versatile",
     temperature=0.1,
-    api_key=os.getenv("GROQ_API_KEY")
+    groq_api_key=api_key
 )
 
 # === TOOL: Create File ===
