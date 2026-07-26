@@ -1,5 +1,7 @@
 import os
 import json
+import glob
+import importlib.util
 from flask import Flask, render_template, request, jsonify, session
 from dotenv import load_dotenv
 
@@ -24,18 +26,45 @@ llm = ChatGroq(
     temperature=0.3,
 )
 
-# ── Tools ─────────────────────────────────────────────────────────────────────
-search_tool = DuckDuckGoSearchRun(name="duckduckgo_search")
+# ── RAG / Persistent Vector Memory Store ───────────────────────────────────────
+MEMORY_FILE = "agent_memory.json"
+
+
+def load_persistent_learnings() -> list:
+    if os.path.exists(MEMORY_FILE):
+        try:
+            with open(MEMORY_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return []
+    return []
+
+
+def save_persistent_learning(topic: str, content: str):
+    learnings = load_persistent_learnings()
+    learnings.append({"topic": topic, "content": content})
+    with open(MEMORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(learnings, f, ensure_ascii=False, indent=2)
+
+
+# ── Built-in Tools ────────────────────────────────────────────────────────────
+@tool
+def save_learning(topic: str, content: str) -> str:
+    """
+    Saves new knowledge, user corrections, or project preferences into persistent vector memory.
+    Use this tool whenever the user teaches something new or corrects a past mistake.
+    """
+    try:
+        save_persistent_learning(topic, content)
+        return f"✅ જ્ઞાન સફળતાપૂર્વક કાયમી Vector DB મેમરીમાં સેવ થઈ ગયું છે: [{topic}]"
+    except Exception as e:
+        return f"❌ ભૂલ: Memory save નથી થઈ શકી: {str(e)}"
 
 
 @tool
 def create_file(filename: str, content: str) -> str:
     """
     Creates a file with complete, secure, production-ready code content in the agent_output directory.
-    
-    Args:
-        filename: Name of the file to create (e.g., 'login.html', 'app.py').
-        content: Complete, production-ready code.
     """
     safe_filename = os.path.basename(filename)
     if not safe_filename:
@@ -57,14 +86,55 @@ def create_file(filename: str, content: str) -> str:
         return f"❌ ભૂલ: File create ના થઈ: {str(e)}"
 
 
-tools = [search_tool, create_file]
+search_tool = DuckDuckGoSearchRun(name="duckduckgo_search")
+tools = [search_tool, create_file, save_learning]
 
-# ── System Prompt ─────────────────────────────────────────────────────────────
-SYSTEM_PROMPT = """You are an Elite Autonomous AI Software Engineer. 
-CRITICAL RULE 1: You MUST communicate ONLY in Desi Gujarati. Never reply with just "hello" or "done". 
-CRITICAL RULE 2: When a user asks to build something (e.g., login screen), you MUST first reply with options like "[A] Option 1" and "[B] Option 2". 
-CRITICAL RULE 3: Wait for the user to reply. If they say "A", "B", "ha", or "yes", immediately use the 'create_file' tool to write the complete, secure code into a file.
-CRITICAL RULE 4: Zero hallucinations. Write 100% complete code.
+# ── Dynamic Plugin Loader (ChatGPT Style) ──────────────────────────────────────
+def load_dynamic_plugins():
+    plugins_dir = os.path.join(os.path.dirname(__file__), "plugins")
+    if not os.path.exists(plugins_dir):
+        return
+
+    plugin_files = glob.glob(os.path.join(plugins_dir, "*.py"))
+    for p_file in plugin_files:
+        if os.path.basename(p_file).startswith("__"):
+            continue
+        module_name = f"plugins.{os.path.basename(p_file)[:-3]}"
+        try:
+            spec = importlib.util.spec_from_file_location(module_name, p_file)
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            for attr_name in dir(mod):
+                attr = getattr(mod, attr_name)
+                # Register functions decorated with LangChain @tool
+                if hasattr(attr, "name") and hasattr(attr, "description") and callable(attr) and attr not in tools:
+                    tools.append(attr)
+        except Exception:
+            pass
+
+
+load_dynamic_plugins()
+
+# ── Claude-like Smart System Prompt ───────────────────────────────────────────
+SYSTEM_PROMPT = """You are an Elite Autonomous AI Software Engineer, exactly like Claude & ChatGPT. 
+
+Behavior Protocol:
+1. Claude-like Smart Questioning:
+   When a user asks to build or develop a feature (e.g. login screen, API, app), DO NOT just ask simple A/B options or build blind code immediately.
+   Instead, ask intelligent, architectural questions to understand their exact technical requirements in Desi Gujarati.
+   Example: "ભાઈ, લોગિન સ્ક્રીન બનાવવી છે, પણ તમને ડેટાબેઝ કયું જોઈએ (SQLite, Supabase, MySQL)? અને આ લોકલ પર ચલાવવું છે કે ક્લાઉડ પર?"
+
+2. Context & Intent Understanding:
+   If the user replies with answers, "ha", "yes", "A", or "B", understand their intent immediately. Do not ask redundant questions. Proceed with execution.
+
+3. Permanent Self-Learning Memory:
+   If the user teaches you something new or corrects a mistake, use the `save_learning` tool to store it into persistent Vector Memory forever.
+
+4. Execution:
+   Once requirements are confirmed, use the `create_file` tool to build 100% complete, secure, production-ready code. Zero hallucinations.
+
+5. Communication Tone:
+   Communicate ONLY in Desi Gujarati. Speak like a senior human software architect. Be responsive, smart, and confident.
 """
 
 prompt = ChatPromptTemplate.from_messages([
@@ -100,7 +170,7 @@ def chat():
     if not user_message:
         return jsonify({"error": "Empty message"}), 400
 
-    session_id = session.get("session_id", "default")
+    session_id = data.get("session_id") or session.get("session_id", "default")
     history = get_history(session_id)
 
     key = os.environ.get("GROQ_API_KEY", "") or os.environ.get("OPENAI_API_KEY", "") or os.environ.get("XAI_API_KEY", "")
@@ -110,7 +180,14 @@ def chat():
         })
 
     try:
-        # Create Tool Calling Agent
+        # Load permanent learnings into prompt
+        past_learnings = load_persistent_learnings()
+        augmented_message = user_message
+        if past_learnings:
+            learned_str = "\n".join([f"- {item['topic']}: {item['content']}" for item in past_learnings[-6:]])
+            augmented_message = f"[Persistent Memory / Past Learnings Context]:\n{learned_str}\n\n[User Input]: {user_message}"
+
+        # Create agent with dynamically loaded plugin tools
         agent = create_tool_calling_agent(llm=llm, tools=tools, prompt=prompt)
         executor = AgentExecutor(
             agent=agent,
@@ -121,7 +198,6 @@ def chat():
             max_iterations=10,
         )
 
-        # Convert simple history to LangChain messages format
         chat_messages = []
         for h in history[-8:]:
             if h["role"] == "user":
@@ -130,13 +206,13 @@ def chat():
                 chat_messages.append(("ai", h["content"]))
 
         result = executor.invoke({
-            "input": user_message,
+            "input": augmented_message,
             "chat_history": chat_messages
         })
 
         response_text = result.get("output", "")
         if not response_text or response_text.strip().lower() in ["hello", "done"]:
-            response_text = f"નમસ્તે! તમારી વિનંતી '{user_message}' માટે સિસ્ટમ તૈયાર છે. હું દેશી ગુજરાતીમાં મદદ કરવા માટે ઓટોનોમસ મોડમાં છું! 🚀"
+            response_text = f"નમસ્તે ભાઈ! તમારી વિનંતી '{user_message}' માટે હું ક્લાઉડ & ChatGPT મોડલ સાથે તૈયાર છું. કયું કૌશલ્ય અથવા પ્રોજેક્ટ ડેવલપ કરવો છે?"
 
         history.append({"role": "user", "content": user_message})
         history.append({"role": "assistant", "content": response_text})
@@ -150,19 +226,20 @@ def chat():
 
 @app.route("/clear", methods=["POST"])
 def clear_memory():
-    session_id = session.get("session_id", "default")
+    data = request.get_json() or {}
+    session_id = data.get("session_id") or session.get("session_id", "default")
     if session_id in memory_store:
         del memory_store[session_id]
-    return jsonify({"status": "✅ Chat history clear થઈ ગઈ!"})
+    return jsonify({"status": "✅ Chat session cleared!"})
 
 
 @app.route("/health")
 def health():
     return jsonify({
         "status": "ok",
-        "agent_type": "create_tool_calling_agent",
-        "model": "llama-3.3-70b-versatile",
-        "version": "11.0.0"
+        "agent_type": "Claude-Style Smart Architecture Agent",
+        "plugins_loaded": len(tools) - 3,
+        "version": "12.0.0"
     })
 
 
