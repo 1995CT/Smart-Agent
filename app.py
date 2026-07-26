@@ -13,16 +13,26 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 # Load environment
 load_dotenv()
 
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
+# Detect key from env (Support both OPENAI_API_KEY and XAI_API_KEY)
+API_KEY = os.environ.get("XAI_API_KEY", "") or os.environ.get("OPENAI_API_KEY", "")
+
+# Determine provider (xAI Grok vs OpenAI GPT-4o)
+if API_KEY.startswith("xai-"):
+    MODEL_NAME = "grok-2-latest"
+    API_BASE = "https://api.x.ai/v1"
+else:
+    MODEL_NAME = "gpt-4o"
+    API_BASE = "https://api.openai.com/v1"
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", os.urandom(24).hex())
 
-# ── LLM Engine (GPT-4o) ──────────────────────────────────────────────────────
+# ── LLM Engine (Smart Dual Support: xAI Grok / OpenAI GPT-4o) ─────────────────
 llm = ChatOpenAI(
-    model="gpt-4o",
+    model=MODEL_NAME,
+    openai_api_key=API_KEY if API_KEY else "dummy_key_for_init",
+    openai_api_base=API_BASE,
     temperature=0.4,
-    openai_api_key=OPENAI_API_KEY if OPENAI_API_KEY else "dummy_key_for_init",
     streaming=False,
 )
 
@@ -130,10 +140,10 @@ def chat():
 
     session_id = session.get("session_id", "default")
 
-    api_key = os.environ.get("OPENAI_API_KEY", "")
-    if not api_key or "your_openai_key" in api_key or api_key == "dummy_key_for_init":
+    env_key = os.environ.get("XAI_API_KEY", "") or os.environ.get("OPENAI_API_KEY", "")
+    if not env_key or "your_openai_key" in env_key or env_key == "dummy_key_for_init":
         return jsonify({
-            "response": "❌ **OpenAI API Key ગેરહાજર છે!**\n\nકૃપા કરીને Render.com Dashboard -> Environment -> `OPENAI_API_KEY` માં તમારી સાચી OpenAI API Key પેસ્ટ કરો."
+            "response": "❌ **API Key ગેરહાજર છે!**\n\nકૃપા કરીને Render.com Dashboard -> Environment માં `OPENAI_API_KEY` અથવા `XAI_API_KEY` સેટ કરો."
         })
 
     try:
@@ -157,7 +167,12 @@ def clear_memory():
 
 @app.route("/health")
 def health():
-    return jsonify({"status": "ok", "brain": "gpt-4o", "temperature": 0.4, "version": "5.0.0"})
+    return jsonify({
+        "status": "ok",
+        "model": MODEL_NAME,
+        "api_base": API_BASE,
+        "version": "6.0.0"
+    })
 
 
 if __name__ == "__main__":
