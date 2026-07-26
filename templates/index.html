@@ -5,90 +5,103 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Smart Agent</title>
   
-  <!-- Minimalist Clean Fonts (Inter + Noto Sans Gujarati) -->
+  <!-- Premium Fonts: Outfit (Display) + Plus Jakarta Sans + Noto Sans Gujarati -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Gujarati:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   
   <style>
-    /* ── Minimalist ChatGPT/Claude Palette ──────────────────────── */
+    /* ── Claude / Groq Premium Warm Dark Palette ───────────────── */
     :root {
-      --bg-dark:        #0d0d0d;
-      --bg-sidebar:     #171717;
-      --bg-chat-user:   #212121;
-      --bg-input:       #212121;
-      --border-color:   rgba(255, 255, 255, 0.1);
-      
-      --text-primary:   #ececec;
-      --text-secondary: #b4b4b4;
-      --text-muted:     #676767;
-      
-      --accent-color:   #10a37f; /* Clean ChatGPT Teal Accent */
-      --accent-hover:   #1a7f64;
+      --bg-dark:          #0c0d12;
+      --bg-sidebar:       #12141d;
+      --bg-card:          rgba(20, 23, 34, 0.75);
+      --bg-input:         #181b26;
 
-      --font-family:    'Inter', 'Noto Sans Gujarati', -apple-system, BlinkMacSystemFont, sans-serif;
+      --warm-gold:        #d4af37;
+      --warm-gold-light:  #f3e5ab;
+      --warm-gold-glow:   rgba(212, 175, 55, 0.28);
+      --warm-amber:       #f59e0b;
+
+      --text-main:        #f1f5f9;
+      --text-secondary:   #94a3b8;
+      --text-muted:       #475569;
+
+      --border-subtle:    rgba(255, 255, 255, 0.08);
+      --border-gold:      rgba(212, 175, 55, 0.3);
+
+      --font-display:     'Outfit', 'Noto Sans Gujarati', sans-serif;
+      --font-body:        'Plus Jakarta Sans', 'Noto Sans Gujarati', sans-serif;
+
+      --radius-xl:        24px;
+      --radius-lg:        16px;
+      --radius-md:        10px;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     html, body {
       height: 100%;
-      font-family: var(--font-family);
+      font-family: var(--font-body);
       background-color: var(--bg-dark);
-      color: var(--text-primary);
+      background-image: 
+        radial-gradient(circle at 50% 30%, rgba(212, 175, 55, 0.04) 0%, transparent 60%),
+        radial-gradient(circle at 80% 80%, rgba(245, 158, 11, 0.03) 0%, transparent 50%);
+      color: var(--text-main);
       overflow: hidden;
       -webkit-font-smoothing: antialiased;
     }
 
-    .app-layout {
+    .app-container {
       display: flex;
       height: 100vh;
       width: 100vw;
     }
 
-    /* ── Slim Minimalist Sidebar ────────────────────────────────── */
+    /* ── Slim Minimal Sidebar ───────────────────────────────────── */
     .sidebar {
-      width: 260px;
-      background-color: var(--bg-sidebar);
-      border-right: 1px solid var(--border-color);
+      width: 270px;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-subtle);
       display: flex;
       flex-direction: column;
-      padding: 14px 12px;
+      padding: 16px 14px;
       gap: 12px;
       flex-shrink: 0;
-      z-index: 10;
+      z-index: 20;
     }
 
     .btn-new-chat {
       display: flex;
       align-items: center;
-      justify-content: flex-start;
       gap: 10px;
-      padding: 10px 14px;
-      border-radius: 8px;
-      background: transparent;
-      border: 1px solid var(--border-color);
-      color: var(--text-primary);
-      font-size: 14px;
-      font-weight: 500;
+      padding: 11px 14px;
+      border-radius: var(--radius-md);
+      background: rgba(212, 175, 55, 0.1);
+      border: 1px solid var(--border-gold);
+      color: var(--warm-gold-light);
+      font-family: var(--font-display);
+      font-size: 13.5px;
+      font-weight: 600;
       cursor: pointer;
-      transition: background 0.2s ease;
+      transition: all 0.2s ease;
     }
 
     .btn-new-chat:hover {
-      background-color: rgba(255, 255, 255, 0.05);
+      background: rgba(212, 175, 55, 0.2);
+      transform: translateY(-1px);
     }
 
-    .sidebar-section-title {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-muted);
-      padding: 10px 8px 4px;
+    .sidebar-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--warm-gold);
+      letter-spacing: 1.2px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      margin: 12px 6px 2px;
     }
 
-    .history-container {
+    .history-list {
       flex: 1;
       overflow-y: auto;
       display: flex;
@@ -96,9 +109,9 @@
       gap: 4px;
     }
 
-    .history-container::-webkit-scrollbar { width: 4px; }
-    .history-container::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.15);
+    .history-list::-webkit-scrollbar { width: 4px; }
+    .history-list::-webkit-scrollbar-thumb {
+      background: rgba(212, 175, 55, 0.2);
       border-radius: 4px;
     }
 
@@ -111,17 +124,18 @@
       color: var(--text-secondary);
       font-size: 13px;
       cursor: pointer;
-      transition: background 0.15s ease, color 0.15s ease;
+      transition: all 0.15s ease;
     }
 
     .history-item:hover {
-      background-color: rgba(255, 255, 255, 0.06);
-      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
     }
 
     .history-item.active {
-      background-color: rgba(255, 255, 255, 0.08);
-      color: var(--text-primary);
+      background: rgba(212, 175, 55, 0.12);
+      border-color: var(--border-gold);
+      color: var(--warm-gold-light);
     }
 
     .history-title {
@@ -131,22 +145,21 @@
       flex: 1;
     }
 
-    .btn-delete-item {
+    .btn-delete-chat {
       background: none;
       border: none;
       color: var(--text-muted);
       cursor: pointer;
       padding: 2px 4px;
-      font-size: 12px;
       opacity: 0;
       transition: opacity 0.15s ease, color 0.15s ease;
     }
 
-    .history-item:hover .btn-delete-item { opacity: 1; }
-    .btn-delete-item:hover { color: #ef4444; }
+    .history-item:hover .btn-delete-chat { opacity: 1; }
+    .btn-delete-chat:hover { color: #ef4444; }
 
-    /* ── Main Chat Area ─────────────────────────────────────────── */
-    .chat-area {
+    /* ── Main Stage ─────────────────────────────────────────────── */
+    .main-stage {
       flex: 1;
       display: flex;
       flex-direction: column;
@@ -154,7 +167,59 @@
       background-color: var(--bg-dark);
     }
 
-    .chat-messages {
+    /* Top Header Bar */
+    .header-bar {
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      border-bottom: 1px solid var(--border-subtle);
+      z-index: 10;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      pointer-events: none;
+    }
+
+    .header-bar.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-logo-mini {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 1px solid var(--border-gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .header-logo-mini svg {
+      width: 14px;
+      height: 14px;
+      fill: var(--warm-gold-light);
+    }
+
+    .header-title-text {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--warm-gold-light);
+    }
+
+    /* ── Chat Canvas ─────────────────────────────────────────────── */
+    .chat-canvas {
       flex: 1;
       overflow-y: auto;
       padding: 32px 0;
@@ -164,85 +229,187 @@
       scroll-behavior: smooth;
     }
 
-    .chat-messages::-webkit-scrollbar { width: 6px; }
-    .chat-messages::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.1);
+    .chat-canvas::-webkit-scrollbar { width: 6px; }
+    .chat-canvas::-webkit-scrollbar-thumb {
+      background: rgba(212, 175, 55, 0.2);
       border-radius: 4px;
     }
 
-    .message-wrapper {
+    /* ── Centered Hero & Electron Track Animation ────────────────── */
+    .hero-centered {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: auto;
+      text-align: center;
+      gap: 32px;
+      padding: 0 20px;
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Soft Glow Container */
+    .logo-orbit-container {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Soft Warm Light Ambient Glow */
+    .logo-soft-glow {
+      position: absolute;
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--warm-gold-glow) 0%, transparent 70%);
+      filter: blur(16px);
+      animation: ambientGlow 4s ease-in-out infinite alternate;
+    }
+
+    @keyframes ambientGlow {
+      0% { transform: scale(0.9); opacity: 0.7; }
+      100% { transform: scale(1.15); opacity: 1; }
+    }
+
+    /* 3D Classic Logo Emblem */
+    .logo-3d-emblem {
+      position: relative;
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1e2638 0%, #0c1019 100%);
+      border: 2px solid var(--warm-gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 25px var(--warm-gold-glow);
+      z-index: 2;
+    }
+
+    .logo-3d-emblem svg {
+      width: 38px;
+      height: 38px;
+      fill: var(--warm-gold-light);
+    }
+
+    /* Orbital Track Ring */
+    .electron-track {
+      position: absolute;
+      inset: 6px;
+      border-radius: 50%;
+      border: 1px dashed rgba(212, 175, 55, 0.35);
+      animation: rotateTrack 10s linear infinite;
+    }
+
+    /* Revolving Glowing Electron Dot */
+    .electron-dot {
+      position: absolute;
+      top: -4px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background-color: var(--warm-gold-light);
+      box-shadow: 0 0 12px var(--warm-gold-light), 0 0 20px var(--warm-gold);
+    }
+
+    @keyframes rotateTrack {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .hero-headline {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: -0.3px;
+    }
+
+    /* ── Messages ────────────────────────────────────────────────── */
+    .msg-row {
       width: 100%;
-      max-width: 768px;
+      max-width: 800px;
       margin: 0 auto;
       padding: 0 20px;
       display: flex;
       gap: 16px;
+      animation: msgFadeIn 0.35s ease;
     }
 
-    .message-wrapper.user {
-      justify-content: flex-end;
+    @keyframes msgFadeIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    .avatar {
-      width: 32px;
-      height: 32px;
+    .msg-row.user { justify-content: flex-end; }
+
+    .msg-avatar {
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 1px solid var(--border-gold);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 14px;
       flex-shrink: 0;
-      font-weight: 600;
     }
 
-    .message-wrapper.agent .avatar {
-      background-color: var(--accent-color);
-      color: white;
+    .msg-avatar svg {
+      width: 18px;
+      height: 18px;
+      fill: var(--warm-gold-light);
     }
 
-    .message-content {
+    .msg-bubble {
       font-size: 15px;
       line-height: 1.65;
-      color: var(--text-primary);
     }
 
-    .message-wrapper.user .message-content {
-      background-color: var(--bg-chat-user);
-      padding: 12px 18px;
-      border-radius: 18px;
+    .msg-row.user .msg-bubble {
+      background: rgba(212, 175, 55, 0.12);
+      border: 1px solid var(--border-gold);
+      padding: 12px 20px;
+      border-radius: 20px;
       border-top-right-radius: 4px;
       max-width: 80%;
+      color: var(--warm-gold-light);
     }
 
-    .message-wrapper.agent .message-content {
+    .msg-row.agent .msg-bubble {
       flex: 1;
       padding-top: 4px;
+      color: var(--text-main);
     }
 
-    /* Code Blocks */
-    .message-content pre {
-      background: #000000;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 14px 16px;
+    .msg-bubble pre {
+      background: #06070a;
+      border: 1px solid var(--border-gold);
+      border-radius: 10px;
+      padding: 16px;
       margin: 12px 0;
       overflow-x: auto;
       font-family: monospace;
       font-size: 13.5px;
     }
 
-    .message-content code {
-      background: rgba(255, 255, 255, 0.1);
+    .msg-bubble code {
+      background: rgba(212, 175, 55, 0.1);
+      color: var(--warm-gold-light);
       border-radius: 4px;
       padding: 2px 6px;
       font-family: monospace;
-      font-size: 13.5px;
     }
 
-    .message-content pre code { background: none; padding: 0; }
+    .msg-bubble pre code { background: none; padding: 0; color: inherit; }
 
     /* Typing Dots */
-    .typing-indicator {
+    .typing-flair {
       display: flex;
       align-items: center;
       gap: 6px;
@@ -250,71 +417,45 @@
     }
 
     .typing-dot {
-      width: 6px;
-      height: 6px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
-      background-color: var(--text-muted);
-      animation: pulse 1.4s infinite ease-in-out both;
+      background: var(--warm-gold);
+      animation: dotPulse 1.4s infinite ease-in-out both;
     }
 
     .typing-dot:nth-child(2) { animation-delay: 0.2s; }
     .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
-    @keyframes pulse {
-      0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
-      40% { opacity: 1; transform: scale(1.1); }
+    @keyframes dotPulse {
+      0%, 80%, 100% { opacity: 0.3; transform: scale(0.7); }
+      40% { opacity: 1; transform: scale(1.1); background: var(--warm-gold-light); }
     }
 
-    /* Empty Welcome Center */
-    .empty-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      margin: auto;
-      text-align: center;
-      gap: 12px;
-    }
-
-    .empty-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background-color: var(--bg-sidebar);
-      border: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-    }
-
-    .empty-title {
-      font-size: 22px;
-      font-weight: 600;
-      color: var(--text-primary);
-    }
-
-    /* ── Centered Input Bar ──────────────────────────────────────── */
-    .input-area {
-      padding: 16px 20px 24px;
+    /* ── Floating Centered Input Box ─────────────────────────────── */
+    .dock-container {
+      padding: 16px 20px 28px;
       width: 100%;
-      max-width: 768px;
+      max-width: 800px;
       margin: 0 auto;
+      z-index: 10;
     }
 
-    .input-container {
+    .input-pill-bar {
       display: flex;
       align-items: flex-end;
-      gap: 10px;
+      gap: 12px;
       background-color: var(--bg-input);
-      border: 1px solid var(--border-color);
-      border-radius: 24px;
-      padding: 10px 16px;
-      transition: border-color 0.2s ease;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: 12px 20px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+      transition: all 0.3s ease;
     }
 
-    .input-container:focus-within {
-      border-color: rgba(255, 255, 255, 0.3);
+    .input-pill-bar:focus-within {
+      border-color: var(--warm-gold);
+      box-shadow: 0 10px 40px rgba(212, 175, 55, 0.15);
     }
 
     #user-input {
@@ -322,80 +463,121 @@
       background: none;
       border: none;
       outline: none;
-      color: var(--text-primary);
-      font-family: var(--font-family);
+      color: var(--text-main);
+      font-family: var(--font-body);
       font-size: 15px;
       line-height: 1.5;
       resize: none;
       max-height: 200px;
-      min-height: 24px;
+      min-height: 26px;
       padding: 2px 0;
     }
 
     #user-input::placeholder { color: var(--text-muted); }
 
-    .btn-send {
-      width: 32px;
-      height: 32px;
+    .btn-send-gold {
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       border: none;
-      background-color: var(--text-primary);
-      color: var(--bg-dark);
+      background: linear-gradient(135deg, var(--warm-gold), var(--warm-amber));
+      color: #0c0d12;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: opacity 0.2s ease;
+      transition: all 0.2s ease;
       flex-shrink: 0;
+      box-shadow: 0 4px 14px var(--warm-gold-glow);
     }
 
-    .btn-send svg { width: 16px; height: 16px; fill: var(--bg-dark); }
-    .btn-send:disabled { opacity: 0.2; cursor: not-allowed; }
+    .btn-send-gold svg {
+      width: 16px;
+      height: 16px;
+      fill: #0c0d12;
+    }
+
+    .btn-send-gold:hover:not(:disabled) {
+      transform: scale(1.06);
+    }
+
+    .btn-send-gold:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      transform: none;
+    }
 
     @media (max-width: 768px) {
       .sidebar { display: none; }
-      .input-area { padding: 12px 16px 16px; }
+      .dock-container { padding: 12px 16px 16px; }
     }
   </style>
 </head>
 <body>
 
-<div class="app-layout">
+<div class="app-container">
 
-  <!-- ── Minimalist Sidebar ────────────────────────────────────── -->
+  <!-- ── Slim Sidebar ──────────────────────────────────────────── -->
   <aside class="sidebar">
     <button class="btn-new-chat" onclick="createNewChat()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-      New Chat
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+      + New Chat
     </button>
 
-    <div class="sidebar-section-title">History</div>
+    <div class="sidebar-label">Chat History</div>
 
-    <div class="history-container" id="history-container">
-      <!-- localStorage chat history items -->
+    <div class="history-list" id="history-list">
+      <!-- localStorage Chat Items -->
     </div>
   </aside>
 
-  <!-- ── Main Chat Area ─────────────────────────────────────────── -->
-  <main class="chat-area">
+  <!-- ── Main Stage ─────────────────────────────────────────────── -->
+  <main class="main-stage">
 
-    <div class="chat-messages" id="chat-messages">
-      <!-- Empty State -->
-      <div class="empty-state" id="empty-state">
-        <div class="empty-icon">🤖</div>
-        <div class="empty-title">Smart Agent</div>
+    <!-- Header Bar (Appears when chat starts) -->
+    <header class="header-bar" id="header-bar">
+      <div class="header-brand">
+        <div class="header-logo-mini">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="header-title-text">Smart Agent</div>
       </div>
+    </header>
+
+    <!-- Chat Canvas -->
+    <div class="chat-canvas" id="chat-canvas">
+
+      <!-- Centered Hero Emblem with Soft Glow & Revolving Electron Track -->
+      <div class="hero-centered" id="hero-centered">
+        <div class="logo-orbit-container">
+          <!-- Soft Warm Glow -->
+          <div class="logo-soft-glow"></div>
+
+          <!-- Revolving Electron Track Animation -->
+          <div class="electron-track">
+            <div class="electron-dot"></div>
+          </div>
+
+          <!-- 3D Classic Logo Emblem -->
+          <div class="logo-3d-emblem">
+            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+        </div>
+
+        <div class="hero-headline">How can I help you today?</div>
+      </div>
+
     </div>
 
-    <!-- Centered Floating Input Bar -->
-    <div class="input-area">
-      <div class="input-container">
+    <!-- Centered Auto-Resizing Input Dock -->
+    <div class="dock-container">
+      <div class="input-pill-bar">
         <textarea
           id="user-input"
-          placeholder="Send a message..."
+          placeholder="How can I help you today?"
           rows="1"
         ></textarea>
-        <button class="btn-send" id="send-btn" onclick="sendMessage()" title="Send">
+        <button class="btn-send-gold" id="send-btn" onclick="sendMessage()" title="Send">
           <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
         </button>
       </div>
@@ -408,11 +590,12 @@
   let currentSessionId = '';
   let isLoading = false;
 
-  const chatMessages     = document.getElementById('chat-messages');
-  const userInput        = document.getElementById('user-input');
-  const sendBtn          = document.getElementById('send-btn');
-  const emptyState       = document.getElementById('empty-state');
-  const historyContainer = document.getElementById('history-container');
+  const chatCanvas   = document.getElementById('chat-canvas');
+  const userInput    = document.getElementById('user-input');
+  const sendBtn      = document.getElementById('send-btn');
+  const heroCentered = document.getElementById('hero-centered');
+  const headerBar    = document.getElementById('header-bar');
+  const historyList  = document.getElementById('history-list');
 
   /* ── Multi-Chat Storage (localStorage) ──────────────────── */
   function getStoredChats() {
@@ -425,10 +608,10 @@
 
   function renderHistorySidebar() {
     const chats = getStoredChats();
-    historyContainer.innerHTML = '';
+    historyList.innerHTML = '';
 
     if (chats.length === 0) {
-      historyContainer.innerHTML = `<div style="font-size:12px;color:var(--text-muted);padding:8px;">No chat history</div>`;
+      historyList.innerHTML = `<div style="font-size:12px;color:var(--text-muted);padding:8px;">No chat history</div>`;
       return;
     }
 
@@ -439,9 +622,9 @@
 
       item.innerHTML = `
         <div class="history-title">${escapeHtml(c.title || 'New chat')}</div>
-        <button class="btn-delete-item" onclick="deleteChat(event, '${c.id}')" title="Delete">✕</button>
+        <button class="btn-delete-chat" onclick="deleteChat(event, '${c.id}')" title="Delete">✕</button>
       `;
-      historyContainer.appendChild(item);
+      historyList.appendChild(item);
     });
   }
 
@@ -464,10 +647,12 @@
 
     clearMessagesUI();
     if (chat && chat.messages && chat.messages.length > 0) {
-      if (emptyState) emptyState.style.display = 'none';
+      if (heroCentered) heroCentered.style.display = 'none';
+      if (headerBar) headerBar.classList.add('visible');
       chat.messages.forEach(m => renderMessageBubble(m.role, m.text));
     } else {
-      if (emptyState) emptyState.style.display = 'flex';
+      if (heroCentered) heroCentered.style.display = 'flex';
+      if (headerBar) headerBar.classList.remove('visible');
     }
   }
 
@@ -495,9 +680,10 @@
   }
 
   function clearMessagesUI() {
-    const msgs = chatMessages.querySelectorAll('.message-wrapper');
+    const msgs = chatCanvas.querySelectorAll('.msg-row');
     msgs.forEach(m => m.remove());
-    if (emptyState) emptyState.style.display = 'flex';
+    if (heroCentered) heroCentered.style.display = 'flex';
+    if (headerBar) headerBar.classList.remove('visible');
   }
 
   function saveMessageToCurrentChat(role, text) {
@@ -513,7 +699,7 @@
     }
   }
 
-  /* ── Textarea Auto-resize ───────────────────────────────── */
+  /* ── Auto-resize Textarea ───────────────────────────────── */
   userInput.addEventListener('input', () => {
     userInput.style.height = 'auto';
     userInput.style.height = Math.min(userInput.scrollHeight, 200) + 'px';
@@ -542,45 +728,46 @@
   }
 
   function renderMessageBubble(role, text) {
-    if (emptyState && emptyState.style.display !== 'none') {
-      emptyState.style.display = 'none';
+    if (heroCentered && heroCentered.style.display !== 'none') {
+      heroCentered.style.display = 'none';
+      if (headerBar) headerBar.classList.add('visible');
     }
 
     const isUser = role === 'user';
-    const wrapper = document.createElement('div');
-    wrapper.className = `message-wrapper ${role}`;
+    const row = document.createElement('div');
+    row.className = `msg-row ${role}`;
 
     if (isUser) {
-      wrapper.innerHTML = `
-        <div class="message-content">${escapeHtml(text)}</div>
-      `;
+      row.innerHTML = `<div class="msg-bubble">${escapeHtml(text)}</div>`;
     } else {
-      wrapper.innerHTML = `
-        <div class="avatar">🤖</div>
-        <div class="message-content">${formatText(text)}</div>
+      row.innerHTML = `
+        <div class="msg-avatar">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="msg-bubble">${formatText(text)}</div>
       `;
     }
 
-    chatMessages.appendChild(wrapper);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    chatCanvas.appendChild(row);
+    chatCanvas.scrollTop = chatCanvas.scrollHeight;
   }
 
   function showTyping() {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'message-wrapper agent';
-    wrapper.id = 'typing-indicator';
-    wrapper.innerHTML = `
-      <div class="avatar">🤖</div>
-      <div class="message-content">
-        <div class="typing-indicator">
-          <div class="typing-dot"></div>
-          <div class="typing-dot"></div>
-          <div class="typing-dot"></div>
-        </div>
+    const row = document.createElement('div');
+    row.className = 'msg-row agent';
+    row.id = 'typing-indicator';
+    row.innerHTML = `
+      <div class="msg-avatar">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <div class="typing-flair">
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
       </div>
     `;
-    chatMessages.appendChild(wrapper);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    chatCanvas.appendChild(row);
+    chatCanvas.scrollTop = chatCanvas.scrollHeight;
   }
 
   function hideTyping() {
