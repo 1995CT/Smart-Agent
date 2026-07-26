@@ -44,8 +44,11 @@ def save_persistent_learning(topic: str, content: str):
         json.dump(learnings, f, ensure_ascii=False, indent=2)
 
 
-# ── Claude-like Smart System Prompt ───────────────────────────────────────────
-SYSTEM_PROMPT = """You are an Elite Autonomous AI Software Engineer, exactly like Claude & ChatGPT. 
+# ── Strict Elite System Prompt (No "su", "kem", "hu" single-word answers) ─────
+SYSTEM_PROMPT = """You are an Elite Autonomous AI Software Engineer, exactly like Claude & ChatGPT.
+
+CRITICAL RULE 1: You MUST communicate ONLY in respectful, full Desi Gujarati sentences.
+CRITICAL RULE 2: NEVER reply with lazy single words or slang like "su", "kem", "hu", "hello", or "done". Always provide complete, intelligent, professional responses.
 
 Behavior Protocol:
 1. Claude-like Smart Questioning:
@@ -63,7 +66,7 @@ Behavior Protocol:
    Once requirements are confirmed, build 100% complete, secure, production-ready code. Zero hallucinations. Zero Vulnerability.
 
 5. Communication Tone:
-   Communicate ONLY in Desi Gujarati. Speak like a senior human software architect. Be responsive, smart, and confident.
+   Communicate ONLY in full Desi Gujarati sentences. Speak like a senior human software architect. Be responsive, smart, and confident.
 """
 
 
@@ -113,6 +116,17 @@ def call_ai_provider(messages):
             continue
 
     return None
+
+
+def sanitize_response(text: str, user_msg: str) -> str:
+    cleaned = text.strip()
+    cleaned_lower = cleaned.lower().replace("?", "").replace(".", "").strip()
+
+    # If the response is a single word like "su", "kem", "hu", "hello", "done"
+    if cleaned_lower in ["su", "kem", "hu", "hello", "done", "ha", "na"] or len(cleaned) < 5:
+        return f"નમસ્તે ભાઈ! 👋 તમારી વિનંતી '{user_msg}' માટે હું તૈયાર છું. તમે શું ડેવલપ કરવા માંગો છો? મને જણાવો!"
+
+    return cleaned
 
 
 def generate_failsafe_gujarati_ai(user_msg):
@@ -175,6 +189,9 @@ def chat():
         if not response_text:
             response_text = generate_failsafe_gujarati_ai(user_message)
 
+        # Sanitize single-word outputs ("su", "kem", "hu")
+        response_text = sanitize_response(response_text, user_message)
+
         history.append({"role": "user", "content": user_message})
         history.append({"role": "assistant", "content": response_text})
         session_memory[session_id] = history
@@ -182,7 +199,7 @@ def chat():
         return jsonify({"response": response_text})
 
     except Exception:
-        return jsonify({"response": "નમસ્તે ભાઈ! 👋 સિસ્ટમ રેડી છે! 🚀"})
+        return jsonify({"response": "નમસ્તે ભાઈ! 👋 હું તમારી શું મદદ કરી શકું?"})
 
 
 @app.route("/clear", methods=["POST"])
@@ -196,7 +213,7 @@ def clear_memory():
 
 @app.route("/health")
 def health():
-    return jsonify({"status": "ok", "mode": "clean_standalone", "version": "15.0.0"})
+    return jsonify({"status": "ok", "mode": "strict_brain", "version": "16.0.0"})
 
 
 if __name__ == "__main__":
