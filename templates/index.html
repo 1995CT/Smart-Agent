@@ -11,16 +11,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   
   <style>
-    /* ── Claude / Groq Premium Warm Dark Palette ───────────────── */
+    /* ── Pure Warm Golden & Dark Palette ──────────────────────── */
     :root {
-      --bg-dark:          #0b0c10;
-      --bg-sidebar:       #12141c;
-      --bg-card:          rgba(20, 23, 34, 0.75);
-      --bg-input:         #181b26;
+      --bg-dark:          #08090c;
+      --bg-sidebar:       #0e1017;
+      --bg-input:         #151822;
 
       --warm-gold:        #d4af37;
       --warm-gold-light:  #f3e5ab;
-      --warm-gold-glow:   rgba(212, 175, 55, 0.35);
+      --warm-gold-glow:   rgba(212, 175, 55, 0.45);
       --warm-amber:       #f59e0b;
 
       --text-main:        #f1f5f9;
@@ -28,7 +27,7 @@
       --text-muted:       #475569;
 
       --border-subtle:    rgba(255, 255, 255, 0.08);
-      --border-gold:      rgba(212, 175, 55, 0.4);
+      --border-gold:      rgba(212, 175, 55, 0.35);
 
       --font-display:     'Outfit', 'Noto Sans Gujarati', sans-serif;
       --font-body:        'Plus Jakarta Sans', 'Noto Sans Gujarati', sans-serif;
@@ -45,8 +44,7 @@
       font-family: var(--font-body);
       background-color: var(--bg-dark);
       background-image: 
-        radial-gradient(circle at 50% 30%, rgba(212, 175, 55, 0.06) 0%, transparent 65%),
-        radial-gradient(circle at 80% 80%, rgba(245, 158, 11, 0.03) 0%, transparent 50%);
+        radial-gradient(circle at 50% 38%, rgba(212, 175, 55, 0.07) 0%, transparent 60%);
       color: var(--text-main);
       overflow: hidden;
       -webkit-font-smoothing: antialiased;
@@ -195,12 +193,9 @@
     }
 
     .header-logo-mini-img {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 1px solid var(--border-gold);
-      box-shadow: 0 0 10px var(--warm-gold-glow);
+      height: 28px;
+      width: auto;
+      filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.6));
     }
 
     .header-title-text {
@@ -227,7 +222,7 @@
       border-radius: 4px;
     }
 
-    /* ── Centered Exact Golden T Logo & Glow ─────────────────────── */
+    /* ── Pure Golden 'T' Logo with Matching Warm Glow ────────────── */
     .hero-centered {
       display: flex;
       flex-direction: column;
@@ -240,79 +235,44 @@
       transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .logo-orbit-container {
+    .logo-glow-wrapper {
       position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       width: 180px;
       height: 180px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
-    /* Matching Soft Golden Back Light Glow */
-    .logo-soft-glow {
+    /* Soft Warm Light Glow behind 'T' matching Golden Color */
+    .golden-t-light-glow {
       position: absolute;
-      width: 170px;
-      height: 170px;
+      width: 150px;
+      height: 150px;
       border-radius: 50%;
-      background: radial-gradient(circle, var(--warm-gold-glow) 0%, rgba(212, 175, 55, 0.15) 45%, transparent 70%);
-      filter: blur(22px);
-      animation: ambientGlow 4s ease-in-out infinite alternate;
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.65) 0%, rgba(243, 229, 171, 0.3) 45%, transparent 70%);
+      filter: blur(28px);
+      animation: goldenPulse 3.5s ease-in-out infinite alternate;
     }
 
-    @keyframes ambientGlow {
-      0% { transform: scale(0.92); opacity: 0.75; }
-      100% { transform: scale(1.2); opacity: 1; }
+    @keyframes goldenPulse {
+      0% { transform: scale(0.88); opacity: 0.7; }
+      100% { transform: scale(1.22); opacity: 1; }
     }
 
-    /* Revolving Electron Orbital Track */
-    .electron-track {
-      position: absolute;
-      inset: -4px;
-      border-radius: 50%;
-      border: 1.5px dashed rgba(212, 175, 55, 0.45);
-      animation: rotateTrack 12s linear infinite;
-    }
-
-    .electron-dot {
-      position: absolute;
-      top: -5px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background-color: var(--warm-gold-light);
-      box-shadow: 0 0 14px var(--warm-gold-light), 0 0 25px var(--warm-gold);
-    }
-
-    @keyframes rotateTrack {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    /* Exact 3D Brushed Golden T Image Container */
-    .user-logo-frame {
+    /* Transparent Golden 'T' Logo Image */
+    .golden-t-standalone {
       position: relative;
-      width: 140px;
       height: 140px;
-      border-radius: 50%;
-      padding: 4px;
-      background: linear-gradient(135deg, rgba(212, 175, 55, 0.8), rgba(153, 122, 21, 0.4));
-      box-shadow: 0 15px 45px rgba(0,0,0,0.9), 0 0 40px var(--warm-gold-glow);
+      width: auto;
+      filter: drop-shadow(0 0 25px rgba(212, 175, 55, 0.8)) drop-shadow(0 12px 30px rgba(0,0,0,0.9));
       z-index: 2;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
+      display: block;
+      transition: transform 0.3s ease;
     }
 
-    .user-logo-img {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      object-fit: cover;
-      display: block;
+    .golden-t-standalone:hover {
+      transform: scale(1.04);
     }
 
     .hero-headline {
@@ -342,19 +302,18 @@
     .msg-row.user { justify-content: flex-end; }
 
     .msg-avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      overflow: hidden;
-      border: 1px solid var(--border-gold);
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       flex-shrink: 0;
-      box-shadow: 0 0 10px var(--warm-gold-glow);
     }
 
     .msg-avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
+      height: 28px;
+      width: auto;
+      filter: drop-shadow(0 0 6px var(--warm-gold-glow));
     }
 
     .msg-bubble {
@@ -528,7 +487,7 @@
     <!-- Header Bar (Appears when chat starts) -->
     <header class="header-bar" id="header-bar">
       <div class="header-brand">
-        <img src="/static/logo.png" class="header-logo-mini-img" alt="Logo">
+        <img src="/static/logo_transparent.png" class="header-logo-mini-img" alt="Logo">
         <div class="header-title-text">Smart Agent</div>
       </div>
     </header>
@@ -536,21 +495,14 @@
     <!-- Chat Canvas -->
     <div class="chat-canvas" id="chat-canvas">
 
-      <!-- Centered Exact User Golden 'T' Logo with Matching Warm Back Light Glow -->
+      <!-- Pure Golden 'T' Logo with Golden Light Glow Behind It -->
       <div class="hero-centered" id="hero-centered">
-        <div class="logo-orbit-container">
-          <!-- Matching Soft Golden Back Light Glow -->
-          <div class="logo-soft-glow"></div>
+        <div class="logo-glow-wrapper">
+          <!-- Soft Golden Light Glow behind Golden T -->
+          <div class="golden-t-light-glow"></div>
 
-          <!-- Revolving Electron Track Animation -->
-          <div class="electron-track">
-            <div class="electron-dot"></div>
-          </div>
-
-          <!-- Exact Golden 3D 'T' Logo Frame -->
-          <div class="user-logo-frame">
-            <img src="/static/logo.png" class="user-logo-img" alt="Golden T Logo">
-          </div>
+          <!-- Standalone Transparent Golden 3D 'T' Logo -->
+          <img src="/static/logo_transparent.png" class="golden-t-standalone" alt="Golden T Logo">
         </div>
 
         <div class="hero-headline">How can I help you today?</div>
@@ -731,7 +683,7 @@
     } else {
       row.innerHTML = `
         <div class="msg-avatar">
-          <img src="/static/logo.png" alt="Logo">
+          <img src="/static/logo_transparent.png" alt="Logo">
         </div>
         <div class="msg-bubble">${formatText(text)}</div>
       `;
@@ -747,7 +699,7 @@
     row.id = 'typing-indicator';
     row.innerHTML = `
       <div class="msg-avatar">
-        <img src="/static/logo.png" alt="Logo">
+        <img src="/static/logo_transparent.png" alt="Logo">
       </div>
       <div class="typing-flair">
         <div class="typing-dot"></div>
