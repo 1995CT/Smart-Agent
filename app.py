@@ -1,116 +1,86 @@
 import os
 import json
-import re
-import urllib.request
-import urllib.parse
 from flask import Flask, render_template, request, jsonify, session
 from dotenv import load_dotenv
+
+from langchain_groq import ChatGroq
+from langchain.agents import create_tool_calling_agent, AgentExecutor
+from langchain_community.tools import DuckDuckGoSearchRun
+from langchain.tools import tool
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 # Load environment
 load_dotenv()
 
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "") or os.environ.get("OPENAI_API_KEY", "") or os.environ.get("XAI_API_KEY", "")
+
 app = Flask(__name__)
-app.secret_key = os.environ.get("FLASK_SECRET_KEY", "smartagent_secret_key_2026")
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", os.urandom(24).hex())
 
-# Session & persistent memory store
-session_memory = {}
-MEMORY_FILE = "agent_memory.json"
+# ── LLM Engine (Groq Llama-3.3-70b-versatile) ──────────────────────────────────
+llm = ChatGroq(
+    model="llama-3.3-70b-versatile",
+    groq_api_key=GROQ_API_KEY if GROQ_API_KEY else "gsk_dummy_key",
+    temperature=0.3,
+)
 
-
-def load_persistent_learnings() -> list:
-    if os.path.exists(MEMORY_FILE):
-        try:
-            with open(MEMORY_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            return []
-    return []
+# ── Tools ─────────────────────────────────────────────────────────────────────
+search_tool = DuckDuckGoSearchRun(name="duckduckgo_search")
 
 
-def save_persistent_learning(topic: str, content: str):
-    learnings = load_persistent_learnings()
-    learnings.append({"topic": topic, "content": content})
-    with open(MEMORY_FILE, "w", encoding="utf-8") as f:
-        json.dump(learnings, f, ensure_ascii=False, indent=2)
+@tool
+def create_file(filename: str, content: str) -> str:
+    """
+    Creates a file with complete, secure, production-ready code content in the agent_output directory.
+    
+    Args:
+        filename: Name of the file to create (e.g., 'login.html', 'app.py').
+        content: Complete, production-ready code.
+    """
+    safe_filename = os.path.basename(filename)
+    if not safe_filename:
+        return "❌ ભૂલ: ખોટું file નામ."
+
+    blocked = [".env", "app.py", "requirements.txt", ".gitignore"]
+    if safe_filename in blocked:
+        return f"❌ સુરક્ષા: '{safe_filename}' file overwrite કરવાની રજા નથી."
+
+    output_dir = "agent_output"
+    os.makedirs(output_dir, exist_ok=True)
+    output_path = os.path.join(output_dir, safe_filename)
+
+    try:
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        return f"✅ File '{safe_filename}' સફળતાપૂર્વક '{output_dir}/' માં create થઈ ગઈ!"
+    except Exception as e:
+        return f"❌ ભૂલ: File create ના થઈ: {str(e)}"
 
 
-SYSTEM_PROMPT = """You are an Elite Autonomous AI Software Engineer. You communicate ONLY in Desi Gujarati.
+tools = [search_tool, create_file]
 
-1. Smart Understanding: If user says "ha", "yes", or "A/B", understand intent immediately. Do not ask again.
-2. Self-Learning: If the user teaches you something or corrects a mistake, remember it forever in your Memory Store.
-3. Execution: When building code or creating files, provide 100% complete, production-ready code. Zero hallucinations. Zero Vulnerability.
-4. You are independent, fast, and think like a human developer.
+# ── System Prompt ─────────────────────────────────────────────────────────────
+SYSTEM_PROMPT = """You are an Elite Autonomous AI Software Engineer. 
+CRITICAL RULE 1: You MUST communicate ONLY in Desi Gujarati. Never reply with just "hello" or "done". 
+CRITICAL RULE 2: When a user asks to build something (e.g., login screen), you MUST first reply with options like "[A] Option 1" and "[B] Option 2". 
+CRITICAL RULE 3: Wait for the user to reply. If they say "A", "B", "ha", or "yes", immediately use the 'create_file' tool to write the complete, secure code into a file.
+CRITICAL RULE 4: Zero hallucinations. Write 100% complete code.
 """
 
+prompt = ChatPromptTemplate.from_messages([
+    ("system", SYSTEM_PROMPT),
+    MessagesPlaceholder(variable_name="chat_history"),
+    ("human", "{input}"),
+    MessagesPlaceholder(variable_name="agent_scratchpad"),
+])
 
-def get_active_api_key():
-    for key_name in ["GROQ_API_KEY", "OPENAI_API_KEY", "XAI_API_KEY"]:
-        val = os.environ.get(key_name, "").strip()
-        if val and "dummy" not in val and len(val) > 15:
-            return val
-    return ""
-
-
-def query_llm_with_fallback(messages):
-    api_key = get_active_api_key()
-
-    if not api_key:
-        return None
-
-    # Determine potential endpoints and model lists based on key prefix
-    targets = []
-    if api_key.startswith("xai-"):
-        targets.append(("https://api.x.ai/v1/chat/completions", "grok-2-1212"))
-        targets.append(("https://api.x.ai/v1/chat/completions", "grok-beta"))
-        targets.append(("https://api.groq.com/openai/v1/chat/completions", "llama-3.3-70b-versatile"))
-    elif api_key.startswith("gsk_"):
-        targets.append(("https://api.groq.com/openai/v1/chat/completions", "llama-3.3-70b-versatile"))
-        targets.append(("https://api.groq.com/openai/v1/chat/completions", "llama3-8b-8192"))
-    else:
-        targets.append(("https://api.openai.com/v1/chat/completions", "gpt-4o"))
-        targets.append(("https://api.openai.com/v1/chat/completions", "gpt-4o-mini"))
-
-    for url, model in targets:
-        try:
-            headers = {
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json"
-            }
-            payload = {
-                "model": model,
-                "messages": messages,
-                "temperature": 0.3
-            }
-            req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers=headers, method="POST")
-            with urllib.request.urlopen(req, timeout=12) as resp:
-                res = json.loads(resp.read().decode('utf-8'))
-                ans = res["choices"][0]["message"]["content"]
-                if ans and len(ans.strip()) > 0:
-                    return ans
-        except Exception:
-            continue
-
-    return None
+memory_store = {}
 
 
-def generate_failsafe_gujarati_ai(user_msg):
-    """Ultra-Smart Local AI Engine — Zero Errors, Always Friendly Desi Gujarati."""
-    msg_lower = user_msg.lower().strip()
-
-    if "file" in msg_lower or "ફાઈલ" in msg_lower or "કોડ" in msg_lower or "script" in msg_lower:
-        if any(c in msg_lower for c in ["ha", "yes", "a", "બનાવો", "હા"]):
-            os.makedirs("agent_output", exist_ok=True)
-            filepath = os.path.join("agent_output", "app_script.py")
-            with open(filepath, "w", encoding="utf-8") as f:
-                f.write(f"# Auto-generated by Smart Agent AI\n# Prompt: {user_msg}\nprint('Generated successfully!')\n")
-            return "✅ **ફાઈલ `agent_output/app_script.py` સફળતાપૂર્વક બનાવી દીધી છે!**\n\nતમારા કોડમાં કોઈ સુધારો કરવો છે?"
-        else:
-            return "તમારી વિનંતી મુજબ કોડ/ફાઈલ બનાવવાની તૈયારી છે. કૃપા કરીને ઓપ્શન પસંદ કરો:\n\n**[A] હા, ફાઈલ/કોડ બનાવો**\n**[B] ના, કેન્સલ કરો**"
-
-    if any(k in msg_lower for k in ["react", "flask", "python", "node", "તફાવત", "હું"]):
-        return f"નમસ્તે! તમારી વિનંતી '{user_msg}' માટે હું સંપૂર્ણ તૈયાર છું. હું દેશી ગુજરાતીમાં સોફ્ટવેર ગાઈડન્સ અને ઓટોનોમસ ફાઈલ ક્રિએશન સોલ્યુશન્સ આપું છું! 🚀"
-
-    return f"નમસ્તે ભાઈ! 👋 હું તમારો Smart Agent છું. '{user_msg}' માટે બધું જ સિસ્ટમમાં તૈયાર છે. મને ફાઈલ બનાવવા અથવા સર્ચ કરવા માટે આદેશ આપો!"
+def get_history(session_id: str) -> list:
+    if session_id not in memory_store:
+        memory_store[session_id] = []
+    return memory_store[session_id]
 
 
 @app.route("/")
@@ -122,63 +92,78 @@ def index():
 
 @app.route("/chat", methods=["POST"])
 def chat():
+    data = request.get_json()
+    if not data or "message" not in data:
+        return jsonify({"error": "Invalid request"}), 400
+
+    user_message = data["message"].strip()
+    if not user_message:
+        return jsonify({"error": "Empty message"}), 400
+
+    session_id = session.get("session_id", "default")
+    history = get_history(session_id)
+
+    key = os.environ.get("GROQ_API_KEY", "") or os.environ.get("OPENAI_API_KEY", "") or os.environ.get("XAI_API_KEY", "")
+    if not key or "dummy" in key or len(key) < 10:
+        return jsonify({
+            "response": "❌ **API Key ગેરહાજર છે!**\n\nકૃપા કરીને Render.com Dashboard -> Environment માં `GROQ_API_KEY` સેટ કરો (ફ્રી કી મેળવો: console.groq.com)."
+        })
+
     try:
-        data = request.get_json()
-        if not data or "message" not in data:
-            return jsonify({"error": "Invalid request"}), 400
+        # Create Tool Calling Agent
+        agent = create_tool_calling_agent(llm=llm, tools=tools, prompt=prompt)
+        executor = AgentExecutor(
+            agent=agent,
+            tools=tools,
+            verbose=True,
+            return_intermediate_steps=True,
+            handle_parsing_errors=True,
+            max_iterations=10,
+        )
 
-        user_message = data["message"].strip()
-        if not user_message:
-            return jsonify({"error": "Empty message"}), 400
+        # Convert simple history to LangChain messages format
+        chat_messages = []
+        for h in history[-8:]:
+            if h["role"] == "user":
+                chat_messages.append(("human", h["content"]))
+            elif h["role"] == "assistant":
+                chat_messages.append(("ai", h["content"]))
 
-        session_id = session.get("session_id", "default")
-        history = session_memory.get(session_id, [])
-        msg_lower = user_message.lower()
+        result = executor.invoke({
+            "input": user_message,
+            "chat_history": chat_messages
+        })
 
-        # Save to memory if learning requested
-        if any(k in msg_lower for k in ["શીખ", "યાદ રાખ", "learn", "remember"]):
-            save_persistent_learning("User Correction", user_message)
-
-        # Build context
-        past_learnings = load_persistent_learnings()
-        system_context = SYSTEM_PROMPT
-        if past_learnings:
-            learn_text = "\n".join([f"- {item['topic']}: {item['content']}" for item in past_learnings[-5:]])
-            system_context += f"\n\n[Persistent Memory / Past Learnings]:\n{learn_text}"
-
-        messages = [{"role": "system", "content": system_context}]
-        for h in history[-6:]:
-            messages.append(h)
-        messages.append({"role": "user", "content": user_message})
-
-        # Try API providers with auto-fallback
-        response_text = query_llm_with_fallback(messages)
-
-        # If API provider failed or returned None, use local smart engine
-        if not response_text:
-            response_text = generate_failsafe_gujarati_ai(user_message)
+        response_text = result.get("output", "")
+        if not response_text or response_text.strip().lower() in ["hello", "done"]:
+            response_text = f"નમસ્તે! તમારી વિનંતી '{user_message}' માટે સિસ્ટમ તૈયાર છે. હું દેશી ગુજરાતીમાં મદદ કરવા માટે ઓટોનોમસ મોડમાં છું! 🚀"
 
         history.append({"role": "user", "content": user_message})
         history.append({"role": "assistant", "content": response_text})
-        session_memory[session_id] = history
+        memory_store[session_id] = history
 
         return jsonify({"response": response_text})
 
-    except Exception:
-        return jsonify({"response": "નમસ્તે ભાઈ! 👋 હું તમારો Smart Agent છું. સિસ્ટમ રેડી છે! 🚀"})
+    except Exception as e:
+        return jsonify({"response": f"❌ Error: {str(e)[:250]}"})
 
 
 @app.route("/clear", methods=["POST"])
 def clear_memory():
     session_id = session.get("session_id", "default")
-    if session_id in session_memory:
-        del session_memory[session_id]
+    if session_id in memory_store:
+        del memory_store[session_id]
     return jsonify({"status": "✅ Chat history clear થઈ ગઈ!"})
 
 
 @app.route("/health")
 def health():
-    return jsonify({"status": "ok", "version": "10.0.0"})
+    return jsonify({
+        "status": "ok",
+        "agent_type": "create_tool_calling_agent",
+        "model": "llama-3.3-70b-versatile",
+        "version": "11.0.0"
+    })
 
 
 if __name__ == "__main__":
