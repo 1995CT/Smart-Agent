@@ -87,13 +87,10 @@ def call_ai_provider(messages):
     targets = []
     if api_key.startswith("gsk_"):
         targets.append(("https://api.groq.com/openai/v1/chat/completions", "llama-3.3-70b-versatile"))
-        targets.append(("https://api.groq.com/openai/v1/chat/completions", "llama3-8b-8192"))
     elif api_key.startswith("xai-"):
         targets.append(("https://api.x.ai/v1/chat/completions", "grok-2-1212"))
-        targets.append(("https://api.x.ai/v1/chat/completions", "grok-beta"))
     else:
         targets.append(("https://api.openai.com/v1/chat/completions", "gpt-4o"))
-        targets.append(("https://api.openai.com/v1/chat/completions", "gpt-4o-mini"))
 
     for url, model in targets:
         try:
@@ -104,7 +101,7 @@ def call_ai_provider(messages):
             payload = {
                 "model": model,
                 "messages": messages,
-                "temperature": 0.3
+                "temperature": 0.1
             }
             req = urllib.request.Request(url, data=json.dumps(payload).encode('utf-8'), headers=headers, method="POST")
             with urllib.request.urlopen(req, timeout=15) as resp:
