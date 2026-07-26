@@ -240,7 +240,8 @@ def clear_memory():
 def health():
     return jsonify({
         "status": "ok",
-        "version": "13.0.0"
+        "ui": "minimal_chatgpt_v14",
+        "version": "14.0.0"
     })
 
 
