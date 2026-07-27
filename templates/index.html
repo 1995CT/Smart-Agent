@@ -1123,6 +1123,17 @@
     }
     userInput.focus();
   })();
+  /* ── Keep-Alive: ping /health every 10 min to prevent Render sleep ─ */
+  (function keepAlive() {
+    const PING_MS = 10 * 60 * 1000; // 10 minutes
+    setInterval(() => {
+      fetch('/health', { method: 'GET', cache: 'no-store' })
+        .then(r => r.json())
+        .catch(() => {}); // Silent — user ne dikhu nai
+    }, PING_MS);
+    // Also ping immediately on page load
+    fetch('/health', { method: 'GET', cache: 'no-store' }).catch(() => {});
+  })();
 </script>
 
 </body>
