@@ -772,9 +772,20 @@
 
 <script>
   /* ── Marked config ──────────────────────────────────────────── */
+  // Bug fix: marked v4+ passes token object, not (code, lang) — use correct signature
   const mdRenderer = new marked.Renderer();
-  mdRenderer.code = function(code, lang) {
-    const language = lang || 'text';
+  const _origCode = mdRenderer.code.bind(mdRenderer);
+  mdRenderer.code = function(token) {
+    // Support both old (code, lang) and new (token object) marked API
+    let code, language;
+    if (typeof token === 'object' && token !== null) {
+      code = token.text || token.raw || '';
+      language = token.lang || 'text';
+    } else {
+      code = token || '';
+      language = arguments[1] || 'text';
+    }
+    language = language || 'text';
     let highlighted = escHtml(code);
     try {
       if (hljs.getLanguage(language)) {
@@ -782,11 +793,11 @@
       } else {
         highlighted = hljs.highlightAuto(code).value;
       }
-    } catch(e) {}
-    const uid = 'cb_' + Math.random().toString(36).substr(2, 7);
+    } catch(e) { highlighted = escHtml(code); }
+    const uid = 'cb_' + Math.random().toString(36).substr(2, 8);
     return `<div class="code-wrap">
       <div class="code-hdr">
-        <span class="code-lang">${language}</span>
+        <span class="code-lang">${escHtml(language)}</span>
         <button class="btn-copy" id="${uid}" onclick="copyCode('${uid}')">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
           Copy
@@ -904,6 +915,7 @@
     chatActive = true;
     hero.style.display = 'none';
     topBar.classList.add('visible');
+    // Bug fix: only move inputBar once, guard against duplicate hint divs
     if (heroInWrap.contains(inputBar)) {
       inputDock.innerHTML = '';
       inputDock.appendChild(inputBar);
@@ -915,6 +927,9 @@
     }
     userInput.style.textAlign = 'left';
     userInput.placeholder = 'Ask anything…';
+    // Bug fix: ensure input is not disabled from a previous error
+    userInput.disabled = false;
+    sendBtn.disabled = false;
   }
 
   function resetHero() {
@@ -924,12 +939,18 @@
     topBar.classList.remove('visible');
     if (inputDock.contains(inputBar)) {
       heroInWrap.appendChild(inputBar);
+      // Bug fix: clear orphaned hint elements from dock
+      inputDock.innerHTML = '';
       inputDock.style.display = 'none';
     }
     userInput.style.textAlign = 'center';
     userInput.placeholder = 'What do you want to know?';
     userInput.value = '';
     userInput.style.height = 'auto';
+    // Bug fix: always re-enable input on reset
+    userInput.disabled = false;
+    sendBtn.disabled = false;
+    isLoading = false;
   }
 
   /* ── Textarea resize ────────────────────────────────────────── */
@@ -979,35 +1000,47 @@
   /* ── Word-by-word typing effect ─────────────────────────────── */
   async function typeReply(text) {
     if (!chatActive) activateChat();
+    // Bug fix: use a unique class instead of id='tb' to avoid duplicate-id bugs
     const row = document.createElement('div');
     row.className = 'msg-row agent';
+    const actionsHtml = `
+      <div class="msg-actions" style="opacity:0">
+        <button class="msg-act-btn" onclick="copyMsg(this)">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copy
+        </button>
+      </div>`;
     row.innerHTML = `
       <div class="msg-avatar"><img src="/static/golden_t_final.png" alt="SA"></div>
       <div style="flex:1;min-width:0;">
-        <div class="msg-bubble" id="tb"></div>
-        <div class="msg-actions" style="opacity:0">
-          <button class="msg-act-btn" onclick="copyMsg(this)">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-            Copy
-          </button>
-        </div>
+        <div class="msg-bubble typing-bubble"></div>
+        ${actionsHtml}
       </div>
     `;
     chatCanvas.appendChild(row);
     chatCanvas.scrollTop = chatCanvas.scrollHeight;
 
-    const bubble = row.querySelector('#tb');
-    bubble.id = '';
+    const bubble = row.querySelector('.typing-bubble');
+    bubble.classList.remove('typing-bubble'); // remove temp class
 
+    // Adaptive typing speed: fast for short text, skip animation for very long
     const words = text.split(' ');
-    let acc = '';
-    for (let i = 0; i < words.length; i++) {
-      acc += (i === 0 ? '' : ' ') + words[i];
-      bubble.innerHTML = marked.parse(acc);
-      chatCanvas.scrollTop = chatCanvas.scrollHeight;
-      await new Promise(r => setTimeout(r, 16));
+    const DELAY = words.length > 200 ? 0 : words.length > 80 ? 8 : 16;
+
+    if (DELAY === 0) {
+      // Very long response — render instantly
+      bubble.innerHTML = marked.parse(text);
+    } else {
+      let acc = '';
+      for (let i = 0; i < words.length; i++) {
+        acc += (i === 0 ? '' : ' ') + words[i];
+        bubble.innerHTML = marked.parse(acc);
+        chatCanvas.scrollTop = chatCanvas.scrollHeight;
+        await new Promise(resolve => setTimeout(resolve, DELAY));
+      }
+      bubble.innerHTML = marked.parse(text);
     }
-    bubble.innerHTML = marked.parse(text);
+
     const acts = row.querySelector('.msg-actions');
     if (acts) acts.style.opacity = '';
     chatCanvas.scrollTop = chatCanvas.scrollHeight;
@@ -1062,13 +1095,14 @@
       saveMsg('agent', reply);
     } catch(e) {
       hideTyping();
-      renderBubble('agent', '❌ Network error. Server check karo.');
+      renderBubble('agent', '❌ **Network error.** Server check karo ya thodi var raho.');
+    } finally {
+      // Bug fix: always restore UI even on error — was missing finally block
+      isLoading = false;
+      sendBtn.disabled = false;
+      userInput.disabled = false;
+      userInput.focus();
     }
-
-    isLoading = false;
-    sendBtn.disabled = false;
-    userInput.disabled = false;
-    userInput.focus();
   }
 
   /* ── Copy helpers ───────────────────────────────────────────── */
@@ -1088,11 +1122,24 @@
   }
 
   function copyMsg(btn) {
-    const bubble = btn.closest('div').previousElementSibling;
+    // Bug fix: traverse up to the wrapper div, then find sibling msg-bubble
+    const wrapper = btn.closest('.msg-actions');
+    if (!wrapper) return;
+    const bubble = wrapper.previousElementSibling;
     if (!bubble) return;
-    navigator.clipboard.writeText(bubble.innerText).then(() => {
-      btn.textContent = '✓ Copied!';
-      setTimeout(() => { btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy`; }, 2000);
+    const textToCopy = bubble.innerText || bubble.textContent || '';
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Copied!';
+      btn.style.color = '#22c55e';
+      setTimeout(() => {
+        btn.innerHTML = orig;
+        btn.style.color = '';
+      }, 2000);
+    }).catch(() => {
+      // Clipboard API not available (e.g. HTTP)
+      btn.textContent = '⚠️ Failed';
+      setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
     });
   }
 
